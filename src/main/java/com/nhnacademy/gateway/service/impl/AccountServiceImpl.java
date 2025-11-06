@@ -18,7 +18,7 @@ public class AccountServiceImpl implements AccountService {
     private final RestTemplate restTemplate;
 
     @Value("${api.account.url}")
-    private String accountAoiBaseUrl;
+    private String accountApiBaseUrl;
 
     public AccountServiceImpl(@Qualifier("accountRestTemplate") RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
@@ -26,7 +26,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public boolean registerAccount(AccountRegisterRequest request){
-        String url = accountAoiBaseUrl + "/api/v1/accounts";
+        String url = accountApiBaseUrl + "/members/register";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

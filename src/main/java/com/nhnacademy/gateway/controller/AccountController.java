@@ -4,6 +4,7 @@ import com.nhnacademy.gateway.dto.AccountRegisterRequest;
 import com.nhnacademy.gateway.service.AccountService;
 import com.nhnacademy.gateway.service.DataAggregationService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,8 +26,6 @@ public class AccountController {
     }
 
 
-
-
     @GetMapping("/join")
     public String joinForm(Model model){
         if(!model.containsAttribute("request")){
@@ -42,12 +41,14 @@ public class AccountController {
             boolean success = accountService.registerAccount(request);
 
             if(success){
-                return "redirect:/login?message=회원가입 완료, 로그인 이동";
+                return "redirect:/login?message=success";
             }else{
                 model.addAttribute("error", "회원가입 처리 중 알 수없는 오류가 발생했습니다.");
                 model.addAttribute("request", request);
                 return "forward:/join";
             }
+
+
         }catch (IllegalArgumentException ex){
             log.warn("register failed (client): {}", ex.getMessage());
             model.addAttribute("error", ex.getMessage());
