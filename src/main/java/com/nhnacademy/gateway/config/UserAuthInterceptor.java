@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.io.IOException;
 
 public class UserAuthInterceptor implements ClientHttpRequestInterceptor {
-    public static final String USER_ID_HEADER = "X-User-ID";
+    public static final String USER_ID_HEADER = "X-USER-ID";
 
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {

@@ -1,11 +1,14 @@
 package com.nhnacademy.gateway.service.impl;
 
-import com.nhnacademy.gateway.dto.*;
+import com.nhnacademy.gateway.dto.basic.AccountDto;
+import com.nhnacademy.gateway.dto.basic.ProjectDto;
+import com.nhnacademy.gateway.dto.basic.TaskProjectDto;
+import com.nhnacademy.gateway.dto.create.ProjectCreateRequest;
+import com.nhnacademy.gateway.dto.detail.ProjectDetailsDto;
 import com.nhnacademy.gateway.service.DataAggregationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -20,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
-@Profile("!test")
+//@Profile("!test")
 public class DataAggregationServiceImpl implements DataAggregationService {
     private final RestTemplate accountRestTemplate;
     private final RestTemplate taskRestTemplate;
@@ -41,8 +44,9 @@ public class DataAggregationServiceImpl implements DataAggregationService {
         Map<String, Object> data = new ConcurrentHashMap<>();
 
         try{
-            String accountUrl = accountApiBaseUrl + "/api/v1/users/{userId}";
-            AccountDto accountInfo = accountRestTemplate.getForObject(accountUrl, AccountDto.class, userId);
+            String accountUrl = accountApiBaseUrl + "/users/{userId}";
+
+            AccountDto accountInfo = taskRestTemplate.getForObject(accountUrl, AccountDto.class, userId);
             if(accountInfo != null){
                 data.put("account", accountInfo);
             }else{
@@ -54,10 +58,10 @@ public class DataAggregationServiceImpl implements DataAggregationService {
         }
 
         try{
-            String taskUrl = taskApiBaseUrl + "/api/v1/projects/my-list";
-            ParameterizedTypeReference<List<TaskProjectDto>> typeRef = new ParameterizedTypeReference<>(){}; // 타입 보존을 위해 사용
+            String taskUrl = taskApiBaseUrl + "/projects";
+            ParameterizedTypeReference<List<ProjectDto>> typeRef = new ParameterizedTypeReference<>(){}; // 타입 보존을 위해 사용
 
-            List<TaskProjectDto> projects = taskRestTemplate.exchange(
+            List<ProjectDto> projects = taskRestTemplate.exchange(
                     taskUrl,
                     HttpMethod.GET,
                     null,
@@ -74,7 +78,7 @@ public class DataAggregationServiceImpl implements DataAggregationService {
     @Override
     public ProjectDetailsDto getProjectDetails(Long projectId) {
         try{
-            String url = taskApiBaseUrl + "/api/v1/projects/"+ projectId;
+            String url = taskApiBaseUrl + "/projects/"+ projectId;
             return taskRestTemplate.getForObject(url, ProjectDetailsDto.class);
         }catch(Exception e){
             log.error("프로젝트에 대한 프로젝트 디테일을 가져오는데 실패했습니다 {}: {}", projectId,e.getMessage());
@@ -83,14 +87,14 @@ public class DataAggregationServiceImpl implements DataAggregationService {
     }
 
     @Override
-    public ProjectDto createProject(ProjectCreateRequest request, String adminUserId) {
+    public ProjectCreateRequest createProject(ProjectCreateRequest request) {
         try{
-            String url = taskApiBaseUrl + "/api/v1/projects";
+            String url = taskApiBaseUrl + "/projects";
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<ProjectCreateRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
 
-            return taskRestTemplate.postForObject(url, httpEntity, ProjectDto.class);
+            return taskRestTemplate.postForObject(url, httpEntity, ProjectCreateRequest.class);
         }catch (Exception e){
             log.error("프로젝트 생성에 실패했습니다. {}:{}", request.getName(), e.getMessage());
             throw new RuntimeException("프로젝트 생성에 실패했습니다.",e);

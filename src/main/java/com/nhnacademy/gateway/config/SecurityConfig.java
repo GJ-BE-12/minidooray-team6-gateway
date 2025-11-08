@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
@@ -14,20 +15,32 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 @Configuration
 public class SecurityConfig {
 
+    private final CustomAuthenticationProvider customAuthenticationProvider;
+
+    public SecurityConfig(CustomAuthenticationProvider customAuthenticationProvider) {
+        this.customAuthenticationProvider = customAuthenticationProvider;
+    }
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return NoOpPasswordEncoder.getInstance();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain (HttpSecurity http) throws Exception {
         // 1. 요청 인가 설정
         http.authorizeHttpRequests(authorizeRequests ->
                 authorizeRequests
-//                        .requestMatchers("/test/**").permitAll()
+                        .requestMatchers("/test/**").permitAll()
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/join").permitAll()
+                        .requestMatchers("/login/process").permitAll()
+                        .requestMatchers("/members/register").permitAll()
 
                         .anyRequest().authenticated()
         );
 
         http.csrf(AbstractHttpConfigurer::disable); //csrf 방어목적
+        http.authenticationProvider(customAuthenticationProvider);
 
         /*
         formLogin 설정
@@ -47,10 +60,8 @@ public class SecurityConfig {
 
                 );
 
+        http.servletApi(AbstractHttpConfigurer::disable);
         return http.build();
     }
-    @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
-    }
+
 }

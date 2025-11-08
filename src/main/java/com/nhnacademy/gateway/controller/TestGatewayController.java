@@ -16,7 +16,7 @@ public class TestGatewayController {
     private final RestTemplate accountRestTemplate;
     
     // yml에서 TaskApi 주소를 가져옵니다.
-    @Value("${api.task.url}")
+    @Value("${api.account.url}")
     private String taskApiUrl;
 
     @GetMapping("/test/task-communication")

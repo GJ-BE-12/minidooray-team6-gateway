@@ -1,10 +1,15 @@
-package com.nhnacademy.gateway.dto;
+package com.nhnacademy.gateway.dto.basic;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
+/**
+ * accountAPI에서 회원정보를 조회하여 gateway로 받아올때 사용
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -14,4 +19,6 @@ public class AccountDto {
     private String username;
     private String email;
     private String status;
+    private LocalDateTime createdAt;
+    private LocalDateTime latestLoginAt;
 }

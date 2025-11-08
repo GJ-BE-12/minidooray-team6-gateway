@@ -1,0 +1,12 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
+
+###
+POST http://10.201.235.221:8082/projects
+Content-Type: application/json
+X-USER-ID: 1
+
+{
+  "name": "새로운"
+}

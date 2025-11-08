@@ -1,13 +1,14 @@
-package com.nhnacademy.gateway.dto;
+package com.nhnacademy.gateway.dto.update;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TagDto {
-    private Long id;
+public class TagUpdateRequest {
     private String name;
 }

@@ -14,11 +14,11 @@ spring:
           max-wait: -1ms
 
   profiles:
-    active: test
+    active: local
 
 api:
   account:
-    url: http://172.27.40.92:8081
+    url: http://localhost:8081
   task:
     url: http://10.201.235.221:8082
 

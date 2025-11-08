@@ -3,6 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>대시보드</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h1, h2 { margin-top: 0; }
+        .error { color: red; font-weight: bold; }
+        .user-info, .project-list { margin-bottom: 30px; }
+        .project-list-header { display: flex; justify-content: space-between; align-items: center; }
+        .btn { background-color: #007bff; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; }
+        .project-item { list-style: none; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .project-item a { text-decoration: none; color: #0056b3; font-weight: bold; font-size: 1.2em; }
+        .project-item .status { display: inline-block; padding: 2px 6px; border-radius: 3px; background-color: #eee; font-size: 0.9em; margin-left: 10px; }
+        .project-item .status-활성 { background-color: #d4edda; color: #155724; }
+        .project-item .status-종료 { background-color: #f8d7da; color: #721c24; }
+        .project-item .status-휴면 { background-color: #e2e3e5; color: #383d41; }
+    </style>
 </head>
 <body>
     <header>
@@ -12,16 +27,45 @@
         </form>
     </header>
 
-<h2>회원 정보</h2>
-<div th:if="${accountError}" style = "color:red;">
-    <p th:text = "${accountError}"></p>
+    <div class="user-info" >
+        <h2>회원 정보</h2>
+        <div th:if="${accountError != null}" style = "color:red;">
+            <p th:text = "${accountError}"></p>
+        </div>
+
+        <div th:if="${account != null}" >
+            <p>ID: <span th:text="${account.username}"></span>아이디</p>
+            <p>EMAIL: <span th:text = "${account.email}"></span>이메일</p>
+            <p>Status: <span th:text = "${account.status}"></span>상태</p>
+        </div>
+    </div>
+<div class="project-list">
+    <div class="project-list-header">
+        <h2>내 프로젝트 목록</h2>
+        <a th:href="@{/projects/register}" class="btn">새 프로젝트 생성</a>
+    </div>
+
+    <div th:if="${projctError}" class="error">
+        <p th:text = "${projectError}"></p>
+    </div>
+
+    <div th:if="${proejcts==null or projects.isEmpty()}">
+        <p>참여 중인 프로젝트가 없습니다. 새 프로젝트를 생성해 보세요.</p>
+    </div>
+
+    <ul th:if="${!projects.isEmpty()}" style = "padding-left: 0;">
+        <li th:each="project : ${projects}" class="project-item">
+            <a th:href="@{/projects/{projectId}(projectId=${project.id})}" th:text="${project.name}">
+                프로젝트 이름
+            </a>
+
+            <span class="status" th:text="${project.status}" th:classappend="'status-'+${project.status}">
+                상태
+            </span>
+        </li>
+    </ul>
 </div>
 
-<div th:if="${account}">
-    <p>ID: <span th:text="${account.username}"></span>아이디</p>
-    <p>EMAIL: <span th:text = "${account.email}"></span>이메일</p>
-    <p>Status: <span th:text = "${account.status}"></span>상태</p>
-</div>
 
 
 </body>
