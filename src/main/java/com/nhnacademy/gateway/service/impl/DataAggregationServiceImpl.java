@@ -5,6 +5,7 @@ import com.nhnacademy.gateway.dto.basic.ProjectDto;
 import com.nhnacademy.gateway.dto.basic.TaskProjectDto;
 import com.nhnacademy.gateway.dto.create.ProjectCreateRequest;
 import com.nhnacademy.gateway.dto.detail.ProjectDetailsDto;
+import com.nhnacademy.gateway.dto.update.ProjectUpdateRequest;
 import com.nhnacademy.gateway.service.DataAggregationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -86,6 +88,7 @@ public class DataAggregationServiceImpl implements DataAggregationService {
         }
     }
 
+
     @Override
     public ProjectCreateRequest createProject(ProjectCreateRequest request) {
         try{
@@ -98,6 +101,39 @@ public class DataAggregationServiceImpl implements DataAggregationService {
         }catch (Exception e){
             log.error("프로젝트 생성에 실패했습니다. {}:{}", request.getName(), e.getMessage());
             throw new RuntimeException("프로젝트 생성에 실패했습니다.",e);
+        }
+    }
+
+    @Override
+    public ProjectDto getProject(Long projectId) {
+        String url = taskApiBaseUrl + "/projects/"+ projectId;
+
+        try{
+            return taskRestTemplate.getForObject(url, ProjectDto.class);
+        }catch (HttpClientErrorException.NotFound ex){
+            log.warn("Project not found: {}", projectId);
+            throw ex;
+        }catch (Exception e){
+            log.error("Error fetching Project: {}", e.getMessage());
+            throw new RuntimeException("프로젝트 정보 조회 중 서버 오류 발생", e);
+        }
+    }
+
+    @Override
+    public void updateProject(Long projectId, ProjectUpdateRequest request) {
+        String url = taskApiBaseUrl + "/projects/" + projectId;
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<ProjectUpdateRequest> httpEntity = new HttpEntity<>(request, headers);
+
+        try{
+            taskRestTemplate.exchange(url, HttpMethod.PUT, httpEntity, Void.class);
+        }catch (HttpClientErrorException ex){
+            log.warn("Project update Failed(Client Error{}): {}", ex.getStatusCode(), projectId);
+            throw new IllegalArgumentException("정보 수정에 실패했습니다.: "+ ex.getMessage());
+        }catch (Exception ex){
+            log.error("Project API communication failed during update: {}", ex.getMessage());
+            throw new RuntimeException("정보 수정 중 서버 오류가 발생했습니다.");
         }
     }
 }

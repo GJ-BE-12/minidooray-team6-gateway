@@ -13,5 +13,5 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProjectMemberAddRequest {
-    private String username;
+    private Long id;
 }

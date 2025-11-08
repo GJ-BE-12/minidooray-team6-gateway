@@ -99,7 +99,7 @@ public class AccountController {
             return "userProfileUpdate";
         }catch (Exception e){
             log.error("유저 정보 변경 실패 (server): {}", e.getMessage());
-            model.addAttribute("error", "서버 오류로 비밀번호 변경 실패");
+            model.addAttribute("error", "서버 오류로 변경 실패");
             return "errorPage";
         }
     }

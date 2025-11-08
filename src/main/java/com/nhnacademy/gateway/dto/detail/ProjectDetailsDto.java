@@ -18,6 +18,6 @@ public class ProjectDetailsDto {
 
     private List<TaskDto> tasks;
     private List<TagDto> tags;
-    private List<MileStoneDto> mileStones;
+    private MileStoneDto mileStone;
     private List<AccountDto> members;
 }

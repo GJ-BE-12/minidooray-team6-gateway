@@ -107,7 +107,7 @@ public class AccountServiceImpl implements AccountService {
             log.warn("Account update Failed(Client Error{}): {}", ex.getStatusCode(), userId);
             throw new IllegalArgumentException("정보 수정에 실패했습니다.: "+ ex.getMessage());
         }catch (Exception ex){
-            log.error("Account API communication failed during updqte: {}", ex.getMessage());
+            log.error("Account API communication failed during update: {}", ex.getMessage());
             throw new RuntimeException("정보 수정 중 서버 오류가 발생했습니다.");
         }
     }
