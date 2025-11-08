@@ -12,3 +12,14 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
+
+  profiles:
+    active: local
+
+api:
+  account:
+    url: http://localhost:8081
+  task:
+    url: http://10.201.235.221:8082
+
+

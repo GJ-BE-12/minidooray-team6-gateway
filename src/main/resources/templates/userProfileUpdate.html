@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>수정하기</title>
+</head>
+<body>
+    <h1>회원 정보 수정</h1>
+<form th:object="${user}" th:action="@{/users/{id}(id=*{accountId})}" method="post">
+    <input type="hidden" name="_method" value="put">
+
+    <div>
+        <label>아이디: </label>
+        <input type="text" id="username" th:field="*{username}" readonly />
+    </div>
+
+    <div>
+        <label>이메일: </label>
+        <input type="text" id="email" th:field="*{email}"  />
+    </div>
+
+    <div>
+        <label>상태: </label>
+        <input type="text" id="status" th:field="*{status}" readonly />
+    </div>
+
+    <div>
+        <label>비밀번호: </label>
+        <form th:action="@{/users/{id}/password(id=${user.accountId})}" method="get">
+            <button type="submit">
+                비밀번호 변경하기
+            </button>
+        </form>
+    </div>
+
+    <div>
+        <button type="button" th:onclick="|location.href='@{/users/{id}(id=*{accountId})}'|" >취소</button>
+    </div>
+    <button type="submit">저장하기</button>
+</form>
+</body>
+</html>
