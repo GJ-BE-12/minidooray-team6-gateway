@@ -1,6 +1,7 @@
 package com.nhnacademy.gateway.config;
 
 import com.nhnacademy.gateway.dto.login.AccountLoginRequest;
+import com.nhnacademy.gateway.dto.login.AccountLoginResponse;
 import com.nhnacademy.gateway.service.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -24,11 +25,17 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String username = authentication.getName();
         String password = authentication.getCredentials().toString();
         try{
-            String userId = accountService.loginAccount(new AccountLoginRequest(username,password));
+            AccountLoginResponse loginResponse = accountService.loginAccount(new AccountLoginRequest(username,password));
 
-            //인증 성공시, spring Security Context에 저장할 토큰 생성 (Principal에 userId를 넣어야 UserAuthInterceptor 사용이 가능하기 때문에
-            //토큰 생성할때 userId를 넣음
-            return new UsernamePasswordAuthenticationToken(userId, // Principal (인터셉터가 꺼내 쓸 ID)
+            CustomUserPrincipal principal = new CustomUserPrincipal(
+                    loginResponse.getUserId(),
+                    null,
+                    loginResponse.getId(),
+                    Collections.emptyList()
+            );
+
+
+            return new UsernamePasswordAuthenticationToken(principal,
                     null, // 비밀번호는 null 처리
                     Collections.emptyList()); // Authorities 권한
         }catch (IllegalArgumentException | HttpClientErrorException ex){

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>프로젝트 수정</title>
+</head>
+<body>
+<h1>프로젝트 정보 수정</h1>
+<form th:object="${project}" th:action="@{/projects/{id}(id=*{})}" method="post">
+    <input type="hidden" name="_method" value="put">
+
+    <div>
+        <label>프로젝트 이름: </label>
+        <input type="text" id="name" th:field="*{name}"  />
+    </div>
+
+    <div>
+        <label>상태: </label>
+        <select id="status" th:field="*{status}">
+            <option value="활성">활성</option>
+            <option value="휴면">휴면</option>
+            <option value="종료">종료</option>
+        </select>
+    </div>
+
+
+    <div>
+        <button type="button" th:onclick="|location.href='@{/projects/{id}(id=*{id})}'|" >취소</button>
+    </div>
+    <button type="submit">저장하기</button>
+</form>
+</body>
+</html>

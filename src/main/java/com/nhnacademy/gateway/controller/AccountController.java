@@ -63,26 +63,18 @@ public class AccountController {
 
     @GetMapping("/users/{userId}")
     public String getAccount(@PathVariable String userId, Model model){
-        try{
-            AccountDto account = accountService.getAccountDetails(userId);
-            model.addAttribute("user", account);
-            return "userProfile";
-        }catch (HttpClientErrorException.NotFound ex){
-            model.addAttribute("error", "사용자 정보를 찾을 수 없습니다.");
-            return "errorPage";
-        }
+
+        AccountDto account = accountService.getAccountDetails(userId);
+        model.addAttribute("user", account);
+        return "userProfile";
     }
 
     @GetMapping("/user/{userId}/edit")
     public String updateAccountForm(@PathVariable String userId, Model model){
-        try{
-            AccountDto account = accountService.getAccountDetails(userId);
-            model.addAttribute("user", account);
-            return "userProfileUpdate";
-        }catch (HttpClientErrorException.NotFound ex){
-            model.addAttribute("error", "사용자 정보를 찾을 수 없습니다.");
-            return "errorPage";
-        }
+
+        AccountDto account = accountService.getAccountDetails(userId);
+        model.addAttribute("user", account);
+        return "userProfileUpdate";
     }
 
     @PutMapping("/user/{userId}")
@@ -97,10 +89,6 @@ public class AccountController {
             log.warn("유저 정보 변경 실패 (client): {}", ex.getMessage());
             model.addAttribute("error", "정보 변경에 실패했습니다. ");
             return "userProfileUpdate";
-        }catch (Exception e){
-            log.error("유저 정보 변경 실패 (server): {}", e.getMessage());
-            model.addAttribute("error", "서버 오류로 비밀번호 변경 실패");
-            return "errorPage";
         }
     }
 
@@ -123,27 +111,19 @@ public class AccountController {
             model.addAttribute("userId", userId);
             model.addAttribute("error", "비밀번호 변경에 실패했습니다. ");
             return "passwordEditForm";
-        }catch (Exception e){
-            log.error("비밀번호 변경 실패 (server): {}", e.getMessage());
-            model.addAttribute("error", "서버 오류로 비밀번호 변경 실패");
-            return "errorPage";
         }
     }
 
     @DeleteMapping("users/{userId}")
     public String deleteAccount (@PathVariable String userId, HttpServletRequest req, HttpServletResponse response,
                                  Model model){
-        try{
-            accountService.deleteAccount(userId);
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if(authentication !=null){
-                this.logoutHandler.logout(req,response, authentication);
-            }
-            return "redirect:/login?message=deleted";
-        }catch (Exception ex){
-            log.error("account 삭제 실패 (server): {}", ex.getMessage());
-            model.addAttribute("error", "서버오류로 회원 탈퇴 실패");
-            return "errorPage";
+
+        accountService.deleteAccount(userId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication !=null){
+            this.logoutHandler.logout(req,response, authentication);
         }
+        return "redirect:/login?message=deleted";
+
     }
 }

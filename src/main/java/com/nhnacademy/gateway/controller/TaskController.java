@@ -1,22 +1,20 @@
 package com.nhnacademy.gateway.controller;
 
-import com.nhnacademy.gateway.dto.create.ProjectCreateRequest;
+import com.nhnacademy.gateway.dto.create.TaskCreateRequest;
 import com.nhnacademy.gateway.dto.detail.ProjectDetailsDto;
+import com.nhnacademy.gateway.dto.detail.TaskDetailsDto;
+import com.nhnacademy.gateway.dto.relation.TaskAddTagRequest;
+import com.nhnacademy.gateway.dto.relation.TaskSetMileStoneRequest;
+import com.nhnacademy.gateway.dto.update.TaskUpdateRequest;
 import com.nhnacademy.gateway.service.DataAggregationService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-
-import java.util.Map;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
+@RequestMapping
 @Slf4j
 public class TaskController {
     private final DataAggregationService aggregationService;
@@ -25,83 +23,100 @@ public class TaskController {
         this.aggregationService = aggregationService;
     }
 
-    private String getCurrentUserId(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication != null && authentication.getPrincipal() instanceof UserDetails){
-            return ((UserDetails) authentication.getPrincipal()).getUsername();
-        }else if (authentication != null && authentication.getPrincipal() instanceof String){
-            return (String)authentication.getPrincipal();
-        }
-        return null;
+    @GetMapping("/projects/{projectId}/tasks/register")
+    public String createTaskForm(@PathVariable Long projectId, Model model){
+        model.addAttribute("task", new TaskCreateRequest());
+        model.addAttribute("projectId", projectId);
+        return "TaskCreateForm";
     }
 
-    @GetMapping("/")
-    public String dashboard(Model model) {
-        String userId = getCurrentUserId();
-
-        if (userId == null) {
-            return "redirect:/login";
-        }
-
-        Map<String, Object> data = aggregationService.getDashboardData(userId);
-        /*
-        data={
-        "account" : accountInfo(AccountDto)
-        "accountError" : 회원 정보를 불러왔으나 데이터가 비어있습니다.
-        "projects" : {List<ProjectDto>}
-        "projectError" : 프로젝트 목록을 불러오는 데 실패했습니다.
-        }
-         */
-
-        model.addAttribute("userId", userId);
-        model.addAllAttributes(data);
-        return "dashboard";
-    }
-
-    @GetMapping("/projects/{projectId}")
-    public String projectDetails(@PathVariable Long projectId, Model model){
-        String userId = getCurrentUserId();
-        if(userId == null){
-            return "redirect:/login";
-        }
-
+    @PostMapping("/projects/{projectId}/tasks")
+    public String createTask(@PathVariable Long projectId, @ModelAttribute TaskCreateRequest request, RedirectAttributes redirectAttributes){
         try{
-            ProjectDetailsDto projectDetails = aggregationService.getProjectDetails(projectId);
-            model.addAttribute("projectDetails", projectDetails);
-            model.addAttribute("userId", userId);
-
-            //TODO: 해당 유저가 admin인지 확인하는게 필요함
-//            if(projectDetails)
-//            model.addAttribute("isAdmin", true);
-            return "projectDetails";
-        } catch (Exception e) {
-            log.error("프로젝트 디테일을 가져오는데 실패했습니다 : {}", e.getMessage());
-            return "redirect:/?error=project_not_found";
+            aggregationService.createTask(projectId,request);
+            redirectAttributes.addFlashAttribute("message", "새 태스크가 생성되었습니다.");
+            return "redirect:/projects/"+projectId;
+        }catch(Exception e){
+            log.error("Task 생성실패 (projectId={}): {}", projectId, e.getMessage() );
+            redirectAttributes.addFlashAttribute("error", "태스트 생성 실패");
+            return "redirect:/projects/"+projectId+"/tasks/register";
         }
     }
 
-    @GetMapping("/projects/register")
-    public String createProjectForm(Model model){
-        model.addAttribute("request", new ProjectCreateRequest());
-        return "projectCreate";
+    @GetMapping("/projects/{projectId}/tasks/{taskId}")
+    public String getTaskDetails(@PathVariable Long taskId, @PathVariable Long projectId, Model model){
+
+        TaskDetailsDto taskDetails = aggregationService.getTaskDetails(taskId);
+        ProjectDetailsDto projectDetails = aggregationService.getProjectDetails(projectId);
+        model.addAttribute("taskDetails", taskDetails);
+        model.addAttribute("projectId", projectId);
+        model.addAttribute("taskDetails", taskDetails);
+        model.addAttribute("allTags", projectDetails.getTags());
+        return "taskDetails";
+
     }
 
-    @PostMapping("/projects")
-    public String createProject(@ModelAttribute ProjectCreateRequest request){
-        String userId = getCurrentUserId();
-        if(userId == null){
-            return "redirect:/login";
-        }
-
+    @GetMapping("/projects/{projectId}/tasks/{taskId}/edit")
+    public String showTaskUpdateForm(@PathVariable Long projectId, @PathVariable Long taskId, Model model){
         try{
-            aggregationService.createProject(request);
-            return "redirect:/?message=project_created";
-        } catch (Exception e) {
-            log.error("프로젝트 생성에 실패했습니다: {}", e.getMessage());
-            return "redirect:/projects/register?error_create_failed";
+            TaskDetailsDto taskDetails = aggregationService.getTaskDetails(taskId);
+
+            TaskUpdateRequest request = new TaskUpdateRequest(
+                    taskDetails.getTask().getTitle(),
+                    taskDetails.getTask().getContent()
+            );
+            model.addAttribute("request", request);
+            model.addAttribute("taskId", taskId);
+            model.addAttribute("projectId", projectId);
+            return "taskEditForm";
+        }catch (Exception e){
+            log.error("Task 수정 폼 로드 실패 (TaskId={}): {}", taskId, e.getMessage());
+            return "redirect:/projects/"+ projectId;
+        }
+    }
+    @PutMapping("/projects/{projectId}/tasks/{taskId}")
+    public String updateTask(@PathVariable Long projectId, @PathVariable Long taskId, @ModelAttribute TaskUpdateRequest request, RedirectAttributes redirectAttributes){
+        try{
+            aggregationService.updateTask(taskId, request);
+            redirectAttributes.addFlashAttribute("message", "태스크가 수정되었습니다");
+            return "redirect:/tasks/"+taskId;
+        }catch (Exception e){
+            log.error("Task 수정 실패 (taskId={}): {}", taskId, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "수정에 실패했습니다."+ e.getMessage());
+            return "redirect:/projects/"+projectId+"/tasks/"+taskId+"/edit";
         }
     }
 
+    @DeleteMapping("/projects/{projectId}/tasks/{taskId}")
+    public String deleteTask(@PathVariable Long projectId, @PathVariable Long taskId, RedirectAttributes redirectAttributes){
+        try{
+            aggregationService.deleteTask(taskId);
+            redirectAttributes.addFlashAttribute("message", "태스크가 삭제되었습니다.");
+        }catch (Exception e){
+            log.error("Task 삭제 실패 (taskId={}): {}", taskId, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "삭제에 실패했습니다."+ e.getMessage());
 
+        }
+        return "redirect:/projects/"+projectId;
+    }
 
+    @PutMapping("/projects/{projectId}/tasks/{taskId}/milestone")
+    public String setMileStone(@PathVariable Long taskId, @PathVariable Long projectId, @ModelAttribute TaskSetMileStoneRequest request,
+                               RedirectAttributes redirectAttributes){
+        aggregationService.setMilestoneOnTask(taskId,request);
+        redirectAttributes.addFlashAttribute("message", "마일스톤이 설정되었습니다.");
+        return "redirect:/projects/"+projectId+"/tasks/"+taskId;
+    }
+
+    @PostMapping("projects/{projectId}/tasks/{taskId}/tags")
+    public String addTag(@PathVariable Long taskId,@PathVariable Long projectId, @ModelAttribute TaskAddTagRequest request){
+        aggregationService.addTagToTask(taskId, request);
+        return "redirect:/projects/"+projectId+"/tasks/"+taskId;
+    }
+
+    @DeleteMapping("projects/{projectId}/tasks/{taskId}/tags/{tagId}")
+    public String deleteTag(@PathVariable Long taskId,@PathVariable Long projectId, @PathVariable Long tagId ){
+        aggregationService.removeTagFromTask(taskId, tagId);
+        return "redirect:/projects/"+projectId+"/tasks/"+taskId;
+    }
 }
