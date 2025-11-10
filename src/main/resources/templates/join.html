@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+</head>
+<body>
+<h1>회원가입</h1>
+
+<div th:if="${error}" style="color:red">
+    <p th:text="${error}"></p>
+</div>
+
+<form th:action="@{/users}" th:object="${request}" method="post">
+    <div>
+        <label>
+            ID: <input type="text" id="username" th:field="*{username}" required>
+        </label>
+    </div>
+    <div>
+        <label>
+            PASSWORD: <input type="text" id="password" th:field="*{password}" required>
+        </label>
+    </div>
+    <div>
+        <label>
+            EMAIL: <input type="text" id="email" th:field="*{email}" required>
+        </label>
+    </div>
+
+    <div>
+        <button type="submit">회원가입</button>
+    </div>
+</form>
+
+<p>
+    <a th:href="@{/login}"> 로그인 페이지로 돌아가기</a>
+</p>
+</body>
+</html>

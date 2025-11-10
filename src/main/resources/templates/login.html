@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인</title>
+</head>
+<body>
+<h1>사용자 로그인</h1>
+<div th:if="${message}" style="color: green;">
+    <p th:text ="${message}"></p>
+</div>
+
+<div th:if="${param.error}" style="color:red">
+    <p>아이디 또는 비밀번호가 올바르지 않습니다.</p>
+</div>
+
+<form method="post" action="/login/process"> <!-- /login/process해도 됨 시큐리티config에서 loginform과 맞춰주기만하면됨-->
+    <span text="id" />id: <input type="text" name="id" /><br />
+    <span text="password" />password: <input type="password" name="password" /><br />
+    <input type="submit" />
+</form>
+
+<p>
+    <a th:href="@{/users}">회원가입</a>
+</p>
+</body>
+</html>

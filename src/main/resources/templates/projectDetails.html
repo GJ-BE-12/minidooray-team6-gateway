@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>프로젝트 상세</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f9f9f9; }
+        .container {max-width: 12000px; margin: 20px auto; padding: 20px}
+        .project-header{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .project-header h1 {margin: 0;}
+        .project-status {display: inline-block; padding: 5px 10px; border-radius: 5px; font-weight: bold;}
+
+        .admin-controls{
+            background-color: #fff8e1;
+            border: 1px solid #ffecb3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .btn{
+            padding: 8px 12px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .btn-filter {
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            background-color: #f5f5f5;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .btn-filter:hover { background-color: #e0e0e0; }
+
+        .btn-primary{background-color: #007bff; color: white;}
+        .btn-secondary{background-color: #6c757d; color: white;}
+        .btn-warning{background-color: #ffc107; color: #333;}
+
+        .main-layout{display: flex; gap:20px;}
+        .task-column {flex: 3; background-color: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd}
+        .box {background-color: white; padding:20px; border-radius: 8px; border: 1px solid #ddd}
+        .box ul {list-style: none; padding: 0; margin:0;}
+        .box li {padding: 8px 0; border-bottom: 1px solid #f0f0f0;}
+        .box li:last-child {border-bottom: none;}
+
+        .sidebar-column{flex:1 ; display: flex; flex-direction: column; gap: 20px;}
+
+        .task-header, .box-header{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .task-header h3, .box-header h3 {margin: 0}
+
+        .task-list ul { list-style: none; padding: 0; }
+        .task-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+        .task-list-item a { text-decoration: none; color: #0056b3; font-weight: bold; }
+
+        .member-item { display: flex; justify-content: space-between; align-items: center; }
+        .admin-tag { background-color: #f0ad4e; color: white; font-size: 0.8em; padding: 2px 5px; border-radius: 3px; }
+
+        .status-alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+        }
+        .alert-dormant {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+        .alert-closed {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="container" th:object="${projectDetails}">
+    <div class="project-header">
+        <div>
+            <h1 th:text="*{project.name}">프로젝트 이름 </h1>
+            <span class="project-status" th:text="*{project.status}" th:classappend=" 'status-' + *{project.status}">프로젝트 상태</span>
+        </div>
+        <a th:href="@{/}" class="btn btn-secondary">대시보드</a>
+    </div>
+
+    <div th:if="*{project.status=='HIBERNATE'}" class="status-alert alert-dormant">
+        <strong>[휴면]</strong> 이 프로젝트는 현재 휴면 상태입니다.
+    </div>
+
+    <div th:if="*{project.status=='CLOSED'}" class="status-alert alert-closed">
+        <strong>[종료]</strong> 이 프로젝트는 현재 종료 상태입니다. (읽기 전용)
+    </div>
+
+    <div th:if="${projectDetails.project != null && isAdmin==true}" class="admin-controls">
+        <h3>관리자 메뉴</h3>
+        <a th:href="@{/projects/{id}/edit(id=*{project.id})}" class="btn btn-warning">프로젝트 설정</a>
+        <a th:if="*{project.status!='CLOSED'}" th:href="@{/projects/{id}/members(id=*{project.id})}" class="btn btn-secondary">멤버 설정</a>
+    </div>
+
+    <div class="main-layout">
+        <div class="task-column">
+            <div class="task-header">
+                <h3>업무 (Tasks)</h3>
+                <a th:if="*{project.status!='CLOSED'}" th:href="@{/projects/{id}/tasks/register(id=*{project.id})}" class="btn btn-primary">업무 추가</a>
+            </div>
+
+            <div class="task-filter-controls" style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                <strong>마일스톤 필터:</strong>
+                <button type="button" class="btn-filter" onclick="filterTasks('milestone', 'all')">전체</button>
+                <button type="button" class="btn-filter" onclick="filterTasks('milestone', 'none')">없음</button>
+                <button th:each="ms : *{mileStones}"
+                        type="button"
+                        class="btn-filter"
+                        th:text="${ms.name}"
+                        th:onclick="|filterTasks('milestone', '${ms.id}')|">
+                </button>
+            </div>
+
+            <div class="task-filter-controls" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                <strong>태그 필터:</strong>
+                <button type="button" class="btn-filter" onclick="filterTasks('tag', 'all')">전체</button>
+                <button type="button" class="btn-filter" onclick="filterTasks('tag', 'none')">없음</button>
+                <button th:each="tag : *{tags}"
+                        type="button"
+                        class="btn-filter"
+                        th:text="${tag.name}"
+                        th:onclick="|filterTasks('tag', '${tag.id}')|">
+                </button>
+            </div>
+
+            <div th:if="*{tasks.isEmpty()}">
+                <p>등록된 업무가 없습니다.</p>
+            </div>
+
+            <div class="task-list">
+                <ul th:unless="*{tasks.isEmpty()}" id="task-list-ul">
+                    <li th:each="task : *{tasks}"
+                        class="task-list-item"
+                        th:data-task-milestone-id="${task.milestoneId != null ? task.milestoneId : 'none'}"
+                        th:data-task-tag-ids="${(task.tags != null && !task.tags.isEmpty()) ? #strings.listJoin(task.tags.![id], ',') : 'none'}">
+
+                        <a th:href="@{/projects/{id}/tasks/{taskId}(id=*{project.id}, taskId=${task.id})}"
+                           th:text="${task.title}">
+                            업무 제목
+                        </a>
+
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-column">
+            <div class="box">
+                <div class="box-header">
+                    <h3>멤버</h3>
+                </div>
+                <ul th:unless="*{members.isEmpty()}">
+                    <li th:each="member: *{members}" class="member-item">
+                        <span th:text = "${member.username}">멤버 이름</span>
+                        <span th:if="${projectDetails.project !=null && projectDetails.project.getAdminUserId().equals(member.accountId)}" class="admin-tag">Admin</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="box">
+                <div class="box-header">
+                    <h3>태그</h3>
+                </div>
+
+                <form th:action="@{/projects/{id}/tags(id=*{project.id})}" method="post" style="margin-bottom: 15px;">
+                    <label>새 태그:</label>
+                    <input type="text" name="name" required> <button type="submit" class="btn btn-primary" style="padding: 3px 6px;">추가</button>
+                </form>
+
+                <hr>
+
+                <div th:if="*{tags.isEmpty()}"> <p>태그가 없습니다.</p> </div>
+                <ul th:unless="*{tags.isEmpty()}" style="padding-left: 0;">
+                    <li th:each="tag: *{tags}" style="list-style: none; margin-bottom: 10px; padding: 5px; border: 1px solid #f0f0f0;">
+                        <form th:action="@{/projects/{pid}/tags/{tid}(pid=*{project.id}, tid=${tag.id})}" method="post" style="display: flex; justify-content: space-between; align-items: center;">
+                            <input type="hidden" name="_method" value="put">
+                            <input type="text" name="name" th:value="${tag.name}" required> <button type="submit" style="background-color: #ffc107; color: #333; border: none; cursor: pointer;">수정</button>
+                        </form>
+                        <form th:action="@{/projects/{pid}/tags/{tid}(pid=*{project.id}, tid=${tag.id})}" method="post" style="text-align: right; margin-top: 5px;">
+                            <input type="hidden" name="_method" value="delete">
+                            <button type="submit" style="background-color: #d9534f; color: white; border: none; cursor: pointer; font-size: 0.8em;"
+                                    th:onclick="return confirm('이 태그를 삭제하면, 관련된 모든 업무에서 태그가 해제됩니다. 정말 삭제하시겠습니까?')">
+                                (삭제)
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="box">
+                <div class="box-header">
+                    <h3>마일스톤</h3>
+                </div>
+
+                <form th:action="@{/projects/{id}/milestones(id=*{project.id})}" method="post" style="margin-bottom: 15px;">
+                    <label>새 마일스톤:</label>
+                    <input type="text" name="name" required>
+                    <button type="submit" class="btn btn-primary" style="padding: 3px 6px;">추가</button>
+                </form>
+
+                <hr>
+
+                <div th:if="*{mileStones.isEmpty()}"> <p>마일스톤이 없습니다.</p> </div>
+                <ul th:unless="*{mileStones.isEmpty()}" style="padding-left: 0;">
+                    <li th:each="ms : *{mileStones}" style="list-style: none; margin-bottom: 10px; padding: 5px; border: 1px solid #f0f0f0;">
+
+                        <form th:action="@{/projects/{pid}/milestones/{msid}(pid=*{project.id}, msid=${ms.id})}" method="post" style="display: flex; justify-content: space-between; align-items: center;">
+                            <input type="hidden" name="_method" value="put">
+                            <input type="text" name="name" th:value="${ms.name}" required>
+                            <button type="submit" style="background-color: #ffc107; color: #333; border: none; cursor: pointer;">수정</button>
+                        </form>
+
+                        <form th:action="@{/projects/{pid}/milestones/{msid}(pid=*{project.id}, msid=${ms.id})}" method="post" style="text-align: right; margin-top: 5px;">
+                            <input type="hidden" name="_method" value="delete">
+                            <button type="submit" style="background-color: #d9534f; color: white; border: none; cursor: pointer; font-size: 0.8em;"
+                                    th:onclick="return confirm('이 마일스톤을 삭제하면, 관련된 모든 업무에서 마일스톤이 해제됩니다. 정말 삭제하시겠습니까?')">
+                                (삭제)
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+
+    function filterTasks(filterType, filterValue) {
+
+        const taskList = document.getElementById('task-list-ul');
+        if (!taskList) return;
+
+        const tasks = taskList.getElementsByClassName('task-list-item');
+
+        for (let i = 0; i < tasks.length; i++) {
+            const task = tasks[i];
+            let isVisible = false;
+            if (filterType === 'milestone') {
+                const taskMsId = task.dataset.taskMilestoneId;
+
+                if (filterValue === 'all') {
+                    isVisible = true;
+                } else if (filterValue === 'none') {
+                    isVisible = (taskMsId === 'none');
+                } else {
+                    isVisible = (taskMsId === filterValue);
+                }
+
+            } else if (filterType === 'tag') {
+                const taskTagIds = task.dataset.taskTagIds;
+
+                if (filterValue === 'all') {
+                    isVisible = true;
+                } else if (filterValue === 'none') {
+                    isVisible = (taskTagIds === 'none');
+                } else {
+                    isVisible = taskTagIds.split(',').includes(filterValue);
+                }
+            }
+
+            task.style.display = isVisible ? 'flex' : 'none';
+        }
+    }
+
+</script>
+
+</body>
+</html>

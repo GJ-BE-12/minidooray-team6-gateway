@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UserProfile</title>
+</head>
+<body>
+<div th:if="${user != null}">
+    <h1><span th:text = "${user.username}"}></span>유저 님의 프로필 조회</h1>
+    <p><label>이메일: </label><span th:text = "${user.email}"></span>이메일</p>
+    <p><label>상태: </label><span th:text = "${user.status}"></span>상태</p>
+    <p><label>가입날짜: </label><span th:text = "${user.createdAt}"></span>가입날짜</p>
+    <p><label>마지막 로그인 날짜 : </label><span th:text = "${user.latestLoginAt}"></span></p>
+</div>
+
+<div th:if="${user==null}">
+    <h1>유저 정보가 없습니다.</h1>
+</div>
+
+<div>
+    <form th:if = "${user != null}"
+          th:action="@{/user/{id}/edit(id=${user.getUsername()})}" method="get">
+        <button type="submit">
+            수정하기
+        </button>
+    </form>
+
+    <br/>
+    <br/>
+    <form th:if = "${user != null}"
+          th:action="@{/users/{id}(id=${user.getUsername()})}" method="post">
+        <input type="hidden" name="_method" value="delete">
+        <button type="submit" th:onclick="return confirm('정말로 탈퇴하시겠습니까? 탈퇴하시면 복구 불가능합니다.')">
+            탈퇴하기
+        </button>
+    </form>
+</div>
+
+
+<br/> <a href="/"> 홈으로 가기</a>
+</body>
+</html>

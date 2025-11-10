@@ -9,16 +9,17 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
+
 public class RedisConfig {
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate (RedisConnectionFactory redisConnectionFactory, ObjectMapper redisMapper){
+    public RedisTemplate<String, Object> redisTemplate (RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper){
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        GenericJackson2JsonRedisSerializer serializer=new GenericJackson2JsonRedisSerializer(objectMapper);
 
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-        GenericJackson2JsonRedisSerializer serializer=new GenericJackson2JsonRedisSerializer(redisMapper);
         redisTemplate.setHashValueSerializer(serializer);
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
         return redisTemplate;

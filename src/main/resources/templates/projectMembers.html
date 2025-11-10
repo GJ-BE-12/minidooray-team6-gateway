@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>프로젝트 멤버</title>
+</head>
+<body>
+
+<h1>프로젝트 멤버 관리</h1>
+<a th:href="@{/projects/{projectId}(projectId=${projectId})}">
+    &larr; 프로젝트로 돌아가기
+</a>
+
+<h2>현재 멤버</h2>
+<div th:if="${currentMembers.isEmpty()}">
+    <p>프로젝트에 멤버가 없습니다.</p>
+</div>
+<ul th:unless="${currentMembers.isEmpty()}">
+    <li th:each="member: ${currentMembers}">
+        <span>
+            <span th:text="${member.username}">멤버 아이디</span>
+            <span th:text="${member.email}">멤버 이메일</span>
+        </span>
+
+        <form th:action="@{/projects/{projectId}/members/{uid}(projectId=${projectId}, uid=${member.accountId})}" method="post" style="display: inline-block;">
+            <input type="hidden" name="_method" value="delete">
+            <button type="submit">삭제</button>
+        </form>
+    </li>
+</ul>
+
+<hr>
+<h2>새 멤버 추가</h2>
+<form th:action="@{/projects/{projectId}/members(projectId=${projectId})}" method="get">
+    <label>사용자 Id 또는 이메일 검색: </label>
+    <input type="text" id="query" name="query" th:value="${query}" placeholder="검색">
+    <button type="submit">검색</button>
+</form>
+
+<div th:if="${searchResults != null}">
+    <h3>검색 결과</h3>
+    <div th:if="${searchResults.isEmpty()}">
+        <p>검색 결과가 없습니다.</p>
+    </div>
+
+    <ul th:unless="${searchResults.isEmpty()}">
+        <li th:each="user: ${searchResults}">
+            <span>
+                <span th:text="${user.username}">사용자 아이디</span>
+                <span th:text="${user.email}">사용자 이메일</span>
+            </span>
+
+            <form th:action="@{/projects/{projectId}/members(projectId=${projectId})}" method="post" style="display: inline-block">
+                <input type="hidden" name="userId" th:value="${user.accountId}">
+                <button type="submit">추가</button>
+            </form>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>

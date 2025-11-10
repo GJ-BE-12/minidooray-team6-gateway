@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>대시보드</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h1, h2 { margin-top: 0; }
+        .error { color: red; font-weight: bold; }
+        .user-info, .project-list { margin-bottom: 30px; }
+        .project-list-header { display: flex; justify-content: space-between; align-items: center; }
+        .btn { background-color: #007bff; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; }
+        .project-item {
+            list-style: none;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }        .project-item a { text-decoration: none; color: #0056b3; font-weight: bold; font-size: 1.2em; }
+        .project-item .status { display: inline-block; padding: 2px 6px; border-radius: 3px; background-color: #eee; font-size: 0.9em; margin-left: 10px; }
+        .project-item .status-활성 { background-color: #d4edda; color: #155724; }
+        .project-item .status-종료 { background-color: #f8d7da; color: #721c24; }
+        .project-item .status-휴면 { background-color: #e2e3e5; color: #383d41; }
+        .btn-delete {
+            background-color: #d9534f;
+            color: white;
+            font-size: 0.9em;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>안녕하세요, <span th:text="${userId}"></span>님!</h1>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">로그아웃</button>
+        </form>
+
+    </header>
+
+
+    <div class="user-info" >
+        <h2>회원 정보</h2>
+        <div th:if="${accountError != null}" style = "color:red;">
+            <p th:text = "${accountError}"></p>
+        </div>
+
+        <div th:if="${account != null}" >
+            <p>ID: <span th:text="${account.username}"></span></p>
+            <p>EMAIL: <span th:text = "${account.email}"></span></p>
+            <p>Status: <span th:text = "${account.status}"></span></p>
+            <a th:href="@{/user/{userId}/edit(userId=${account.username})}" class="btn" style="margin-top: 10px; background-color: #ffc107; color: #333;">
+                정보 수정
+            </a>
+            <a th:href="@{/users/{userId}(userId=${account.username})}" class="btn" style="margin-top: 10px;">
+                정보 상세조회
+            </a>
+        </div>
+    </div>
+<div class="project-list">
+    <div class="project-list-header">
+        <h2>내 프로젝트 목록</h2>
+        <a th:href="@{/projects/register}" class="btn">새 프로젝트 생성</a>
+    </div>
+
+    <div th:if="${projectError}" class="error">
+        <p th:text = "${projectError}"></p>
+    </div>
+
+    <div th:if="${projects==null or projects.isEmpty()}">
+        <p>참여 중인 프로젝트가 없습니다. 새 프로젝트를 생성해 보세요.</p>
+    </div>
+
+    <ul th:if="${projects !=null and !projects.isEmpty()}" style = "padding-left: 0;">
+        <li th:each="project : ${projects}" class="project-item">
+            <div>
+                <a th:href="@{/projects/{projectId}(projectId=${project.id})}" th:text="${project.name}">
+                    프로젝트 이름
+                </a>
+
+                <span class="status" th:text="${project.status}" th:classappend="'status-'+${project.status}">
+                상태
+            </span>
+            </div>
+
+            <div>
+                <form th:if="${account!=null and account.username.equals(project.adminUserId)}"
+                      th:action="@{/projects/{projectId}(projectId=${project.id})}" method="post" style ="margin: 0;">
+                    <input type="hidden" name="_method" value="delete">
+
+                    <button type="submit" class="btn btn-delete" th:onclick="return confirm('정말로 이 프로젝트를[삭제]하시겠습니까? 모든 관련 데이가 없어집니다.')">
+                        삭제
+                    </button>
+                </form>
+            </div>
+
+        </li>
+    </ul>
+</div>
+
+
+
+</body>
+</html>

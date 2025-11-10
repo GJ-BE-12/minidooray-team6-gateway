@@ -1,0 +1,25 @@
+spring:
+  data:
+    redis:
+      host: 10.116.64.14  # 내부 접속시, 외부는 220.67.216.14
+      port: 6379
+      password: '*N2vya7H@muDTwdNMR!'
+      database: 16
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  profiles:
+    active: local
+
+api:
+  account:
+    url: http://localhost:8081
+  task:
+    url: http://10.201.235.221:8082
+
+
