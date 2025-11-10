@@ -3,8 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <title>Task 생성 폼</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 30px;
+            background-color: #fafafa;
+            color: #222;
+        }
+        h1 {
+            margin-bottom: 15px;
+        }
+        form {
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type=text],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        button {
+            width: fit-content;
+            padding: 8px 14px;
+            border: 1px solid #999;
+            border-radius: 4px;
+            background: #f0f0f0;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover { background: #ddd; }
+        a {
+            color: #06c;
+            text-decoration: none;
+            margin-left: 8px;
+        }
+        .message, .error {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .message {
+            background-color: #e6f7e6;
+            border: 1px solid #a3d9a3;
+            color: #145214;
+        }
+        .error {
+            background-color: #fde7e7;
+            border: 1px solid #f5b5b5;
+            color: #7a0b0b;
+        }
+    </style>
 </head>
 <body>
+<main th:with="pid=${projectId}">
+    <h1>새 Task 생성</h1>
+
+    <!-- 플래시 메시지 -->
+    <div th:if="${message}" th:text="${message}"></div>
+    <div th:if="${error}" th:text="${error}"></div>
+
+    <!-- 폼 -->
+    <form th:action="@{|/projects/${pid}/tasks|}" th:object="${task}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <div>
+            <label for="title">제목 *</label><br/>
+            <input id="title" type="text" th:field="*{title}" placeholder="제목을 입력하세요" required />
+            <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+        </div>
+
+        <div>
+            <label for="content">설명</label><br/>
+            <textarea id="content" th:field="*{content}" placeholder="설명을 입력하세요"></textarea>
+            <div th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
+        </div>
+
+        <div>
+            <label for="mileStoneId">마일스톤 선택</label><br/>
+            <select id="mileStoneId" th:field="*{mileStoneId}">
+                <option value="">-- 선택 안 함 --</option>
+                <option th:each="m : ${projectDetails.mileStones}"
+                        th:value="${m.id}"
+                        th:text="${m.name}">
+                </option>
+            </select>
+        </div>
+
+        <div>
+            <button type="submit">생성하기</button>
+            <a th:href="@{|/projects/${pid}|}">취소</a>
+        </div>
+    </form>
+</main>
 
 </body>
 </html>

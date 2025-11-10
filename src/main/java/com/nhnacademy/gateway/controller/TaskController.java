@@ -27,6 +27,8 @@ public class TaskController {
     public String createTaskForm(@PathVariable Long projectId, Model model){
         model.addAttribute("task", new TaskCreateRequest());
         model.addAttribute("projectId", projectId);
+        // 마일스톤 필드 추가로 인한 로직 추가
+        model.addAttribute("projectDetails", aggregationService.getProjectDetails(projectId));
         return "TaskCreateForm";
     }
 
@@ -48,7 +50,6 @@ public class TaskController {
 
         TaskDetailsDto taskDetails = aggregationService.getTaskDetails(taskId);
         ProjectDetailsDto projectDetails = aggregationService.getProjectDetails(projectId);
-        model.addAttribute("taskDetails", taskDetails);
         model.addAttribute("projectId", projectId);
         model.addAttribute("taskDetails", taskDetails);
         model.addAttribute("allTags", projectDetails.getTags());
