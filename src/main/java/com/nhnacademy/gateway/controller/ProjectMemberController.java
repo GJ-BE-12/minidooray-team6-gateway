@@ -27,7 +27,7 @@ public class ProjectMemberController {
     }
 
 
-    @GetMapping("/manage")
+    @GetMapping
     public String showMemberManagement(@PathVariable Long projectId,
                                        @RequestParam(required = false) String query,
                                        Model model){
@@ -45,14 +45,15 @@ public class ProjectMemberController {
         return "projectMembers";
     }
 
+
     @PostMapping
     public String addMemberToProject(@PathVariable Long projectId, @RequestParam Long userId){
         try{
             aggregationService.addProjectMember(projectId, userId);
         }catch(Exception e){
-          log.warn("멤버 추가 실패: {}", e.getMessage());
+            log.warn("멤버 추가 실패: {}", e.getMessage());
         }
-        return "redirect:/projects/"+ projectId +"/members/manage";
+        return "redirect:/projects/"+ projectId +"/members";
     }
 
     @DeleteMapping("/{userId}")
@@ -62,6 +63,6 @@ public class ProjectMemberController {
         }catch (Exception e){
             log.warn("프로젝트 속 멤버 삭제 실패: {}", e.getMessage());
         }
-        return "redirect:/projects/"+ projectId + "/members/manage";
+        return "redirect:/projects/"+ projectId + "/members";
     }
 }

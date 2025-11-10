@@ -19,7 +19,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskDetailsDto {
-
     private TaskDto task;
     private MileStoneDto mileStone;
 

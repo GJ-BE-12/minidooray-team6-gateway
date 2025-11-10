@@ -80,7 +80,6 @@
 
     <!-- 폼 -->
     <form th:action="@{|/projects/${pid}/tasks|}" th:object="${task}" method="post">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
         <div>
             <label for="title">제목 *</label><br/>
@@ -94,19 +93,10 @@
             <div th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
         </div>
 
-        <div>
-            <label for="mileStoneId">마일스톤 선택</label><br/>
-            <select id="mileStoneId" th:field="*{mileStoneId}">
-                <option value="">-- 선택 안 함 --</option>
-                <option th:each="m : ${projectDetails.mileStones}"
-                        th:value="${m.id}"
-                        th:text="${m.name}">
-                </option>
-            </select>
-        </div>
 
         <div>
             <button type="submit">생성하기</button>
+
             <a th:href="@{|/projects/${pid}|}">취소</a>
         </div>
     </form>

@@ -106,25 +106,25 @@
         <a th:href="@{/}" class="btn btn-secondary">대시보드</a>
     </div>
 
-    <div th:if="*{project.status=='휴면'}" class="status-alert alert-dormant">
+    <div th:if="*{project.status=='HIBERNATE'}" class="status-alert alert-dormant">
         <strong>[휴면]</strong> 이 프로젝트는 현재 휴면 상태입니다.
     </div>
 
-    <div th:if="*{project.status=='종료'}" class="status-alert alert-closed">
+    <div th:if="*{project.status=='CLOSED'}" class="status-alert alert-closed">
         <strong>[종료]</strong> 이 프로젝트는 현재 종료 상태입니다. (읽기 전용)
     </div>
 
-    <div th:if="${isAdmin}" class="admin-controls">
+    <div th:if="${projectDetails.project != null && isAdmin==true}" class="admin-controls">
         <h3>관리자 메뉴</h3>
         <a th:href="@{/projects/{id}/edit(id=*{project.id})}" class="btn btn-warning">프로젝트 설정</a>
-        <a th:if="*{project.status!='종료'}" th:href="@{/projects/{id}/members(id=*{project.id})}" class="btn btn-secondary">멤버 설정</a>
+        <a th:if="*{project.status!='CLOSED'}" th:href="@{/projects/{id}/members(id=*{project.id})}" class="btn btn-secondary">멤버 설정</a>
     </div>
 
     <div class="main-layout">
         <div class="task-column">
             <div class="task-header">
                 <h3>업무 (Tasks)</h3>
-                <a th:if="*{project.status!='종료'}" th:href="@{/projects/{id}/tasks/register(id=*{project.id})}" class="btn btn-primary">업무 추가</a>
+                <a th:if="*{project.status!='CLOSED'}" th:href="@{/projects/{id}/tasks/register(id=*{project.id})}" class="btn btn-primary">업무 추가</a>
             </div>
 
             <div class="task-filter-controls" style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
@@ -162,10 +162,11 @@
                         th:data-task-milestone-id="${task.milestoneId != null ? task.milestoneId : 'none'}"
                         th:data-task-tag-ids="${(task.tags != null && !task.tags.isEmpty()) ? #strings.listJoin(task.tags.![id], ',') : 'none'}">
 
-                        <a th:href="@{/projects/{id}/tasks/{taskId}(id=*{project.id}, taskId=*{task.id})}"
+                        <a th:href="@{/projects/{id}/tasks/{taskId}(id=*{project.id}, taskId=${task.id})}"
                            th:text="${task.title}">
                             업무 제목
                         </a>
+
                     </li>
                 </ul>
             </div>
@@ -179,7 +180,7 @@
                 <ul th:unless="*{members.isEmpty()}">
                     <li th:each="member: *{members}" class="member-item">
                         <span th:text = "${member.username}">멤버 이름</span>
-                        <span th:if="${member.username.equals(project.adminUserId)}" class="admin-tag">Admin</span>
+                        <span th:if="${projectDetails.project !=null && projectDetails.project.getAdminUserId().equals(member.accountId)}" class="admin-tag">Admin</span>
                     </li>
                 </ul>
             </div>

@@ -6,7 +6,8 @@
 </head>
 <body>
 <h1>프로젝트 정보 수정</h1>
-<form th:object="${project}" th:action="@{/projects/{id}(id=*{})}" method="post">
+
+<form th:object="${project}" th:action="@{/projects/{id}(id=*{id})}" method="post">
     <input type="hidden" name="_method" value="put">
 
     <div>
@@ -17,9 +18,9 @@
     <div>
         <label>상태: </label>
         <select id="status" th:field="*{status}">
-            <option value="활성">활성</option>
-            <option value="휴면">휴면</option>
-            <option value="종료">종료</option>
+            <option value="ACTIVE">활성</option>
+            <option value="HIBERNATE">휴면</option>
+            <option value="CLOSED">종료</option>
         </select>
     </div>
 

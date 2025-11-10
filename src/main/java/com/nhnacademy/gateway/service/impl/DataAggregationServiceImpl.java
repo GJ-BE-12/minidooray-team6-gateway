@@ -1,8 +1,8 @@
 package com.nhnacademy.gateway.service.impl;
 
 import com.nhnacademy.gateway.dto.basic.AccountDto;
+import com.nhnacademy.gateway.dto.basic.CommentDto;
 import com.nhnacademy.gateway.dto.basic.ProjectDto;
-import com.nhnacademy.gateway.dto.basic.TaskProjectDto;
 import com.nhnacademy.gateway.dto.create.*;
 import com.nhnacademy.gateway.dto.detail.ProjectDetailsDto;
 import com.nhnacademy.gateway.dto.detail.TaskApiResponseDto;
@@ -22,8 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -106,7 +108,11 @@ public class DataAggregationServiceImpl implements DataAggregationService {
             memberDetails=List.of();
         }
 
-        ProjectDetailsDto finalDetails = new ProjectDetailsDto(taskApiResponse);
+        ProjectDetailsDto finalDetails = new ProjectDetailsDto();
+        finalDetails.setProject(taskApiResponse.getProject());
+        finalDetails.setMileStones(taskApiResponse.getMileStones());
+        finalDetails.setTags(taskApiResponse.getTags());
+        finalDetails.setTasks(taskApiResponse.getTasks());
         finalDetails.setMembers(memberDetails);
         return finalDetails;
     }
@@ -128,11 +134,16 @@ public class DataAggregationServiceImpl implements DataAggregationService {
     }
 
     @Override
-    public ProjectDto getProject(Long projectId) {
+    public TaskApiResponseDto getProject(Long projectId) {
         String url = taskApiBaseUrl + "/projects/"+ projectId;
 
         try{
-            return taskRestTemplate.getForObject(url, ProjectDto.class);
+            TaskApiResponseDto projectDto =taskRestTemplate.getForObject(url, TaskApiResponseDto.class);
+
+            if(projectDto != null && projectDto.getProject().getId()==null){
+                projectDto.getProject().setId(projectId);
+            }
+            return projectDto;
         }catch (HttpClientErrorException.NotFound ex){
             log.warn("Project not found: {}", projectId);
             throw ex;
@@ -203,10 +214,13 @@ public class DataAggregationServiceImpl implements DataAggregationService {
     public void addProjectMember(Long projectId, Long userId) {
         String url = taskApiBaseUrl+"/projects/"+ projectId + "/members";
 
-        ProjectMemberAddRequest request =  new ProjectMemberAddRequest(userId);
+        ProjectMemberAddRequest singleRequest =  new ProjectMemberAddRequest(userId);
+        List<ProjectMemberAddRequest> requestList = List.of(singleRequest);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<ProjectMemberAddRequest> entity= new HttpEntity<>(request, headers);
+
+        HttpEntity<List<ProjectMemberAddRequest>> entity = new HttpEntity<>(requestList, headers);
 
         try{
             taskRestTemplate.postForEntity(url, entity, Void.class);
@@ -218,7 +232,6 @@ public class DataAggregationServiceImpl implements DataAggregationService {
             log.error("Task-API멤버 추가 중 알 수 없는 오류 (projectId={}): {}", projectId, e.getMessage());
             throw new RuntimeException("멤버 추가 중 오류가 발생했습니다.");
         }
-
     }
 
     @Override
@@ -245,7 +258,6 @@ public class DataAggregationServiceImpl implements DataAggregationService {
         HttpEntity<TaskCreateRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
         try{
             taskRestTemplate.postForEntity(url, httpEntity, Void.class);
-
         } catch (Exception e){
             log.error("Task 생성에 실패했습니다. {}:{}", request.getTitle(), e.getMessage());
             throw new RuntimeException("프로젝트 생성에 실패했습니다.",e);
@@ -253,10 +265,9 @@ public class DataAggregationServiceImpl implements DataAggregationService {
     }
 
     @Override
-    public TaskDetailsDto getTaskDetails(Long taskId) {
+    public TaskDetailsDto getTaskDetails(Long projectId ,Long taskId) {
         try{
-            String url = taskApiBaseUrl + "/tasks/"+ taskId;
-
+            String url = taskApiBaseUrl + "/projects/"+projectId+ "/tasks/"+ taskId;
             return taskRestTemplate.getForObject(url, TaskDetailsDto.class);
         }catch(Exception e){
             log.error("Task에대한 Task 디테일을 가져오는데 실패했습니다 {}: {}", taskId,e.getMessage());
@@ -264,9 +275,10 @@ public class DataAggregationServiceImpl implements DataAggregationService {
         }
     }
 
+
     @Override
-    public void updateTask(Long taskId, TaskUpdateRequest request) {
-        String url = taskApiBaseUrl + "/tasks/" + taskId;
+    public void updateTask(Long projectId,Long taskId, TaskUpdateRequest request) {
+        String url = taskApiBaseUrl + "/projects/"+projectId+ "/tasks/"+ taskId;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<TaskUpdateRequest> httpEntity = new HttpEntity<>(request, headers);
@@ -283,8 +295,8 @@ public class DataAggregationServiceImpl implements DataAggregationService {
     }
 
     @Override
-    public void deleteTask(Long taskId) {
-        String url = taskApiBaseUrl + "/tasks/" +taskId;
+    public void deleteTask(Long projectId,Long taskId) {
+        String url = taskApiBaseUrl + "/projects/"+projectId+ "/tasks/"+ taskId;
         try{
             taskRestTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
             log.info("Task 삭제가 성공적으로 됐습니다 (Task-API): {}", taskId);
@@ -297,29 +309,36 @@ public class DataAggregationServiceImpl implements DataAggregationService {
         }
     }
 
+//    @Override
+//    public void setMilestoneOnTask(Long projectId,Long taskId, TaskSetMileStoneRequest request) {
+//        String url = taskApiBaseUrl  + "/projects/"+projectId+"/tasks/" + taskId + "/milestone";
+//
+//
+////        HttpEntity<TaskSetMileStoneRequest> entity = new HttpEntity<>(request);
+////        entity.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//        HttpEntity<TaskSetMileStoneRequest> entity = new HttpEntity<>(request, headers);
+//
+//        try{
+//            taskRestTemplate.exchange(url, HttpMethod.PUT, entity, Void.class);
+//        }catch (HttpClientErrorException ex){
+//            log.warn("TaskSetMilestone update Failed(Client Error{}): taskId:{}, milestoneId:{}", ex.getStatusCode(), taskId,request.getMileStonId());
+//            throw new IllegalArgumentException("정보 수정에 실패했습니다.: "+ ex.getMessage());
+//        }catch (Exception ex){
+//            log.error("TaskSetMilestone communication failed during update: {}", ex.getMessage());
+//            throw new RuntimeException("정보 수정 중 서버 오류가 발생했습니다.");
+//        }
+//    }
+
     @Override
-    public void setMilestoneOnTask(Long taskId, TaskSetMileStoneRequest request) {
-        String url = taskApiBaseUrl  + "/tasks/" + taskId + "/milestone";
-
-        HttpEntity<TaskSetMileStoneRequest> entity = new HttpEntity<>(request);
-        entity.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-
-        try{
-            taskRestTemplate.exchange(url, HttpMethod.PUT, entity, Void.class);
-        }catch (HttpClientErrorException ex){
-            log.warn("TaskSetMilestone update Failed(Client Error{}): taskId:{}, milestoneId:{}", ex.getStatusCode(), taskId,request.getMileStonId());
-            throw new IllegalArgumentException("정보 수정에 실패했습니다.: "+ ex.getMessage());
-        }catch (Exception ex){
-            log.error("TaskSetMilestone communication failed during update: {}", ex.getMessage());
-            throw new RuntimeException("정보 수정 중 서버 오류가 발생했습니다.");
-        }
-    }
-
-    @Override
-    public void addTagToTask(Long taskId, TaskAddTagRequest request) {
-        String url = taskApiBaseUrl + "/tasks/"+taskId+"/tags";
-        HttpEntity<TaskAddTagRequest> entity = new HttpEntity<>(request);
-        entity.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+    public void addTagToTask(Long projectId,Long taskId, TaskAddTagRequest request) {
+        String url = taskApiBaseUrl + "/projects/"+projectId+"/tasks/"+taskId+"/tags";
+//        HttpEntity<TaskAddTagRequest> entity = new HttpEntity<>(request);
+//        entity.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<TaskAddTagRequest> entity = new HttpEntity<>(request, headers);
         try{
             taskRestTemplate.postForEntity(url, entity, Void.class);
         }catch (HttpClientErrorException ex){
@@ -332,8 +351,8 @@ public class DataAggregationServiceImpl implements DataAggregationService {
     }
 
     @Override
-    public void removeTagFromTask(Long taskId, Long tagId) {
-        String url = taskApiBaseUrl +"/tasks/"+taskId+"/tags/"+tagId;
+    public void removeTagFromTask(Long projectId,Long taskId, Long tagId) {
+        String url = taskApiBaseUrl +"/projects/"+projectId+"/tasks/"+taskId+"/tags/"+tagId;
 
         try{
             taskRestTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
@@ -403,7 +422,6 @@ public class DataAggregationServiceImpl implements DataAggregationService {
     @Override
     public void createMileStone(Long projectId, MileStoneCreateRequest request) {
         String url = taskApiBaseUrl+ "/projects/"+projectId+"/milestones";
-        request.setProjectId(projectId);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<MileStoneCreateRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
@@ -456,7 +474,7 @@ public class DataAggregationServiceImpl implements DataAggregationService {
     @Override
     public void createComment(Long projectId, Long taskId, CommentCreateRequest request) {
         String url = taskApiBaseUrl + "/projects/" + projectId + "/tasks/"+ taskId + "/comments";
-        request.setTaskId(taskId);
+
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<CommentCreateRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
@@ -469,7 +487,7 @@ public class DataAggregationServiceImpl implements DataAggregationService {
             throw new IllegalArgumentException("Comment 생성에 실패했습니다. (API오류)");
         }
         catch (Exception e){
-            log.error("코멘트 생성에 실패했습니다. {}:{}", request.getTaskId(), e.getMessage());
+            log.error("코멘트 생성에 실패했습니다. {}:{}", taskId, e.getMessage());
             throw new RuntimeException("코멘트 생성에 실패했습니다. 서버오류",e);
         }
     }

@@ -1,9 +1,11 @@
 package com.nhnacademy.gateway.service;
 
 
+import com.nhnacademy.gateway.dto.basic.AccountDto;
 import com.nhnacademy.gateway.dto.create.*;
 import com.nhnacademy.gateway.dto.detail.ProjectDetailsDto;
 import com.nhnacademy.gateway.dto.basic.ProjectDto;
+import com.nhnacademy.gateway.dto.detail.TaskApiResponseDto;
 import com.nhnacademy.gateway.dto.detail.TaskDetailsDto;
 import com.nhnacademy.gateway.dto.relation.TaskAddTagRequest;
 import com.nhnacademy.gateway.dto.relation.TaskSetMileStoneRequest;
@@ -19,7 +21,7 @@ public interface DataAggregationService {
 
     void createProject(ProjectCreateRequest request);
 
-    ProjectDto getProject(Long projectId);
+    TaskApiResponseDto getProject(Long projectId);
 
     void updateProject(Long projectId, ProjectUpdateRequest request);
 
@@ -33,17 +35,17 @@ public interface DataAggregationService {
 
     void createTask(Long projectId, TaskCreateRequest request);
 
-    TaskDetailsDto getTaskDetails(Long taskId);
+    TaskDetailsDto getTaskDetails(Long projectId , Long taskId);
 
-    void updateTask(Long taskId, TaskUpdateRequest request);
+    void updateTask(Long projectId,Long taskId, TaskUpdateRequest request);
 
-    void deleteTask(Long taskId);
+    void deleteTask(Long projectId,Long taskId);
 
-    void setMilestoneOnTask(Long taskId, TaskSetMileStoneRequest request);
+//    void setMilestoneOnTask(Long projectId ,Long taskId, TaskSetMileStoneRequest request);
 
-    void addTagToTask(Long taskId, TaskAddTagRequest request);
+    void addTagToTask(Long projectId ,Long taskId, TaskAddTagRequest request);
 
-    void removeTagFromTask(Long taskId, Long tagId);
+    void removeTagFromTask(Long projectId,Long taskId, Long tagId);
 
     void createTag(Long projectId, TagCreateRequest request);
 

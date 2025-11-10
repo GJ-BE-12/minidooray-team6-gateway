@@ -60,11 +60,11 @@
         <a th:href="@{/projects/register}" class="btn">새 프로젝트 생성</a>
     </div>
 
-    <div th:if="${projctError}" class="error">
+    <div th:if="${projectError}" class="error">
         <p th:text = "${projectError}"></p>
     </div>
 
-    <div th:if="${proejcts==null or projects.isEmpty()}">
+    <div th:if="${projects==null or projects.isEmpty()}">
         <p>참여 중인 프로젝트가 없습니다. 새 프로젝트를 생성해 보세요.</p>
     </div>
 

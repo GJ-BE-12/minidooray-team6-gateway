@@ -7,7 +7,7 @@
 <body>
 
 <h1>프로젝트 멤버 관리</h1>
-<a th:href="@{/projects/{id}(id=${projectId})}">
+<a th:href="@{/projects/{projectId}(projectId=${projectId})}">
     &larr; 프로젝트로 돌아가기
 </a>
 
@@ -22,7 +22,7 @@
             <span th:text="${member.email}">멤버 이메일</span>
         </span>
 
-        <form th:action="@{/projects/{pid}/members/{uid}(pid=${projectId}, uid=${member.accountId})}" method="post" style="display: inline-block;">
+        <form th:action="@{/projects/{projectId}/members/{uid}(projectId=${projectId}, uid=${member.accountId})}" method="post" style="display: inline-block;">
             <input type="hidden" name="_method" value="delete">
             <button type="submit">삭제</button>
         </form>
@@ -31,7 +31,7 @@
 
 <hr>
 <h2>새 멤버 추가</h2>
-<form th:action="@{/projects/{id}/members/manage(${projectId})}" method="get">
+<form th:action="@{/projects/{projectId}/members(projectId=${projectId})}" method="get">
     <label>사용자 Id 또는 이메일 검색: </label>
     <input type="text" id="query" name="query" th:value="${query}" placeholder="검색">
     <button type="submit">검색</button>
@@ -50,7 +50,7 @@
                 <span th:text="${user.email}">사용자 이메일</span>
             </span>
 
-            <form th:action="@{/projects/{id}/members(id=${projectId})}" method="post" style="display: inline-block">
+            <form th:action="@{/projects/{projectId}/members(projectId=${projectId})}" method="post" style="display: inline-block">
                 <input type="hidden" name="userId" th:value="${user.accountId}">
                 <button type="submit">추가</button>
             </form>

@@ -15,5 +15,6 @@ import lombok.Setter;
 public class TaskUpdateRequest {
     private String title;
     private String content;
+    private Long milestoneId;
 }
 

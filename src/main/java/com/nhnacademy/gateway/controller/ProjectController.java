@@ -4,6 +4,7 @@ import com.nhnacademy.gateway.config.CustomUserPrincipal;
 import com.nhnacademy.gateway.dto.basic.ProjectDto;
 import com.nhnacademy.gateway.dto.create.ProjectCreateRequest;
 import com.nhnacademy.gateway.dto.detail.ProjectDetailsDto;
+import com.nhnacademy.gateway.dto.detail.TaskApiResponseDto;
 import com.nhnacademy.gateway.dto.update.AccountUpdateRequest;
 import com.nhnacademy.gateway.dto.update.ProjectUpdateRequest;
 import com.nhnacademy.gateway.service.DataAggregationService;
@@ -43,6 +44,14 @@ public class ProjectController {
             return ((UserDetails) principal).getUsername();
         }else if (principal instanceof String){
             return (String) principal;
+        }
+        return null;
+    }
+
+    private Long getCurrentUserAccountId(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication != null && authentication.getPrincipal() instanceof CustomUserPrincipal){
+            return ((CustomUserPrincipal) authentication.getPrincipal()).getNumericId();
         }
         return null;
     }
@@ -88,7 +97,7 @@ public class ProjectController {
 
     @GetMapping("/projects/{projectId}")
     public String projectDetails(@PathVariable Long projectId, Model model){
-        String userId = getCurrentUserId();
+        Long userId = getCurrentUserAccountId();
         if(userId == null){
             return "redirect:/login";
         }
@@ -96,10 +105,13 @@ public class ProjectController {
         ProjectDetailsDto projectDetails = aggregationService.getProjectDetails(projectId);
         model.addAttribute("projectDetails", projectDetails);
         model.addAttribute("userId", userId);
+        Long adminUserId = Long.parseLong(projectDetails.getProject().getAdminUserId());
 
-        if(projectDetails.getProject().getAdminUserId().equals(userId)){
+        if(adminUserId.equals(userId) ){
             model.addAttribute("isAdmin", true);
         }else{
+            log.info("AdminuserId: {}", projectDetails.getProject().getAdminUserId());
+            log.info("userId: {}",userId);
             model.addAttribute("isAdmin", false);
         }
         return "projectDetails";
@@ -108,8 +120,16 @@ public class ProjectController {
     @GetMapping("/projects/{projectId}/edit")
     public String projectUpdateForm(@PathVariable Long projectId, Model model){
 
-        ProjectDto projectDto = aggregationService.getProject(projectId);
-        model.addAttribute("project", projectDto);
+        TaskApiResponseDto projectDto = aggregationService.getProject(projectId);
+        String currentStatusKr = projectDto.getProject().getStatus();
+        String translatedStatusEn = switch (currentStatusKr) {
+            case "활성" -> "ACTIVE";
+            case "휴면" -> "HIBERNATE";
+            case "종료" -> "CLOSED";
+            default -> "ACTIVE"; // 예상치 못한 값일 경우 ACTIVE로 처리
+        };
+        projectDto.getProject().setStatus(translatedStatusEn);
+        model.addAttribute("project", projectDto.getProject());
         return "projectUpdateForm";
     }
 

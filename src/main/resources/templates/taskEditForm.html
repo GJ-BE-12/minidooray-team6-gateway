@@ -27,7 +27,6 @@
 <form th:action="@{|/projects/${projectId}/tasks/${taskId}|}"
       th:object="${request}" method="post">
     <input type="hidden" name="_method" value="put"/>
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
     <div>
         <label for="title">제목</label><br/>

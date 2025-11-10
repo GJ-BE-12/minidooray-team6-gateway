@@ -21,7 +21,7 @@ public class ProjectCommentController {
     private final DataAggregationService aggregationService;
 
     @PostMapping
-    public String createMilestone(@PathVariable Long projectId, @PathVariable Long taskId ,@ModelAttribute CommentCreateRequest request, RedirectAttributes redirectAttributes){
+    public String createComment(@PathVariable Long projectId, @PathVariable Long taskId ,@ModelAttribute CommentCreateRequest request, RedirectAttributes redirectAttributes){
         try{
             aggregationService.createComment(projectId,taskId ,request);
         }catch (Exception ex){
@@ -32,7 +32,7 @@ public class ProjectCommentController {
     }
 
     @PutMapping("/{commentId}")
-    public String UpdateTag(@PathVariable Long projectId, @PathVariable Long taskId , @PathVariable Long commentId, @ModelAttribute CommentUpdateRequest request, RedirectAttributes redirectAttributes){
+    public String updateComment(@PathVariable Long projectId, @PathVariable Long taskId , @PathVariable Long commentId, @ModelAttribute CommentUpdateRequest request, RedirectAttributes redirectAttributes){
         try{
             aggregationService.updateComment(projectId,taskId,commentId, request);
         }catch (Exception e){
@@ -43,7 +43,7 @@ public class ProjectCommentController {
     }
 
     @DeleteMapping("/{commentId}")
-    public String DeleteTag(@PathVariable Long projectId,  @PathVariable Long taskId , @PathVariable Long commentId, RedirectAttributes redirectAttributes){
+    public String deleteComment(@PathVariable Long projectId,  @PathVariable Long taskId , @PathVariable Long commentId, RedirectAttributes redirectAttributes){
         try{
             aggregationService.deleteComment(projectId, taskId, commentId);
         }catch (Exception e){

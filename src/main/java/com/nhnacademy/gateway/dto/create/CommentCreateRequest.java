@@ -13,6 +13,5 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommentCreateRequest {
-    private Long taskId;
     private String content;
 }

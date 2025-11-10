@@ -8,6 +8,5 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class MileStoneCreateRequest {
-    private Long projectId;
     private String name;
 }
