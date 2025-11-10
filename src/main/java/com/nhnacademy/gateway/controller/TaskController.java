@@ -48,7 +48,6 @@ public class TaskController {
 
         TaskDetailsDto taskDetails = aggregationService.getTaskDetails(taskId);
         ProjectDetailsDto projectDetails = aggregationService.getProjectDetails(projectId);
-        model.addAttribute("taskDetails", taskDetails);
         model.addAttribute("projectId", projectId);
         model.addAttribute("taskDetails", taskDetails);
         model.addAttribute("allTags", projectDetails.getTags());

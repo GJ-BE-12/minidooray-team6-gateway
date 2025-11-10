@@ -186,13 +186,29 @@
             <div class="box">
                 <div class="box-header">
                     <h3>태그</h3>
-                    <a th:if="*{project.status!='종료'}" th:href="@{/projects/{id}/tags(id=*{project.id})}" class="btn btn-primary">태그 추가</a>
                 </div>
 
+                <form th:action="@{/projects/{id}/tags(id=*{project.id})}" method="post" style="margin-bottom: 15px;">
+                    <label>새 태그:</label>
+                    <input type="text" name="name" required> <button type="submit" class="btn btn-primary" style="padding: 3px 6px;">추가</button>
+                </form>
+
+                <hr>
+
                 <div th:if="*{tags.isEmpty()}"> <p>태그가 없습니다.</p> </div>
-                <ul th:unless="*{tags.isEmpty()}">
-                    <li th:each="tag: *{tags}">
-                        <span th:text="${tag.name}">태그 이름</span>
+                <ul th:unless="*{tags.isEmpty()}" style="padding-left: 0;">
+                    <li th:each="tag: *{tags}" style="list-style: none; margin-bottom: 10px; padding: 5px; border: 1px solid #f0f0f0;">
+                        <form th:action="@{/projects/{pid}/tags/{tid}(pid=*{project.id}, tid=${tag.id})}" method="post" style="display: flex; justify-content: space-between; align-items: center;">
+                            <input type="hidden" name="_method" value="put">
+                            <input type="text" name="name" th:value="${tag.name}" required> <button type="submit" style="background-color: #ffc107; color: #333; border: none; cursor: pointer;">수정</button>
+                        </form>
+                        <form th:action="@{/projects/{pid}/tags/{tid}(pid=*{project.id}, tid=${tag.id})}" method="post" style="text-align: right; margin-top: 5px;">
+                            <input type="hidden" name="_method" value="delete">
+                            <button type="submit" style="background-color: #d9534f; color: white; border: none; cursor: pointer; font-size: 0.8em;"
+                                    th:onclick="return confirm('이 태그를 삭제하면, 관련된 모든 업무에서 태그가 해제됩니다. 정말 삭제하시겠습니까?')">
+                                (삭제)
+                            </button>
+                        </form>
                     </li>
                 </ul>
             </div>
@@ -200,14 +216,33 @@
             <div class="box">
                 <div class="box-header">
                     <h3>마일스톤</h3>
-                    <a th:if="*{project.status!='종료'}" th:href="@{/projects/{id}/milestones(id=*{project.id})}" class="btn btn-secondary">마일스톤 생성</a>
                 </div>
-                <div th:if="*{mileStones == null || mileStones.isEmpty()}">
-                    <p>마일스톤이 없습니다.</p>
-                </div>
-                <ul th:unless="*{mileStones == null || mileStones.isEmpty()}">
-                    <li th:each="ms : *{mileStones}">
-                        <span th:text="${ms.name}">마일스톤 이름</span>
+
+                <form th:action="@{/projects/{id}/milestones(id=*{project.id})}" method="post" style="margin-bottom: 15px;">
+                    <label>새 마일스톤:</label>
+                    <input type="text" name="name" required>
+                    <button type="submit" class="btn btn-primary" style="padding: 3px 6px;">추가</button>
+                </form>
+
+                <hr>
+
+                <div th:if="*{mileStones.isEmpty()}"> <p>마일스톤이 없습니다.</p> </div>
+                <ul th:unless="*{mileStones.isEmpty()}" style="padding-left: 0;">
+                    <li th:each="ms : *{mileStones}" style="list-style: none; margin-bottom: 10px; padding: 5px; border: 1px solid #f0f0f0;">
+
+                        <form th:action="@{/projects/{pid}/milestones/{msid}(pid=*{project.id}, msid=${ms.id})}" method="post" style="display: flex; justify-content: space-between; align-items: center;">
+                            <input type="hidden" name="_method" value="put">
+                            <input type="text" name="name" th:value="${ms.name}" required>
+                            <button type="submit" style="background-color: #ffc107; color: #333; border: none; cursor: pointer;">수정</button>
+                        </form>
+
+                        <form th:action="@{/projects/{pid}/milestones/{msid}(pid=*{project.id}, msid=${ms.id})}" method="post" style="text-align: right; margin-top: 5px;">
+                            <input type="hidden" name="_method" value="delete">
+                            <button type="submit" style="background-color: #d9534f; color: white; border: none; cursor: pointer; font-size: 0.8em;"
+                                    th:onclick="return confirm('이 마일스톤을 삭제하면, 관련된 모든 업무에서 마일스톤이 해제됩니다. 정말 삭제하시겠습니까?')">
+                                (삭제)
+                            </button>
+                        </form>
                     </li>
                 </ul>
             </div>

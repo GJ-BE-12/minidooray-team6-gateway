@@ -1,15 +1,13 @@
 package com.nhnacademy.gateway.service;
 
 
-import com.nhnacademy.gateway.dto.create.ProjectCreateRequest;
-import com.nhnacademy.gateway.dto.create.TaskCreateRequest;
+import com.nhnacademy.gateway.dto.create.*;
 import com.nhnacademy.gateway.dto.detail.ProjectDetailsDto;
 import com.nhnacademy.gateway.dto.basic.ProjectDto;
 import com.nhnacademy.gateway.dto.detail.TaskDetailsDto;
 import com.nhnacademy.gateway.dto.relation.TaskAddTagRequest;
 import com.nhnacademy.gateway.dto.relation.TaskSetMileStoneRequest;
-import com.nhnacademy.gateway.dto.update.ProjectUpdateRequest;
-import com.nhnacademy.gateway.dto.update.TaskUpdateRequest;
+import com.nhnacademy.gateway.dto.update.*;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +17,7 @@ public interface DataAggregationService {
 
     ProjectDetailsDto getProjectDetails(Long projectId);
 
-    ProjectCreateRequest createProject(ProjectCreateRequest request);
+    void createProject(ProjectCreateRequest request);
 
     ProjectDto getProject(Long projectId);
 
@@ -33,7 +31,7 @@ public interface DataAggregationService {
 
     void removeProjectMember(Long projectId, Long userId);
 
-    TaskCreateRequest createTask(Long projectId, TaskCreateRequest request);
+    void createTask(Long projectId, TaskCreateRequest request);
 
     TaskDetailsDto getTaskDetails(Long taskId);
 
@@ -46,4 +44,25 @@ public interface DataAggregationService {
     void addTagToTask(Long taskId, TaskAddTagRequest request);
 
     void removeTagFromTask(Long taskId, Long tagId);
+
+    void createTag(Long projectId, TagCreateRequest request);
+
+    void updateTag(Long projectId,Long tagId ,TagUpdateRequest request);
+
+    void deleteTag(Long projectId, Long tagId);
+
+    void createMileStone(Long projectId, MileStoneCreateRequest request);
+
+    void updateMilestone(Long projectId,Long milestoneId , MileStoneUpdateRequest request);
+
+    void deleteMilestone(Long projectId, Long milestoneId);
+
+    void createComment(Long projectId, Long taskId, CommentCreateRequest request);
+
+    void updateComment(Long projectId, Long taskId, Long commentId , CommentUpdateRequest request);
+
+    void deleteComment(Long projectId, Long taskId, Long commentId );
+
+
+
 }

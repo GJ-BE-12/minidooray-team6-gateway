@@ -3,16 +3,14 @@ package com.nhnacademy.gateway.service.impl;
 import com.nhnacademy.gateway.dto.basic.AccountDto;
 import com.nhnacademy.gateway.dto.basic.ProjectDto;
 import com.nhnacademy.gateway.dto.basic.TaskProjectDto;
-import com.nhnacademy.gateway.dto.create.ProjectCreateRequest;
-import com.nhnacademy.gateway.dto.create.TaskCreateRequest;
+import com.nhnacademy.gateway.dto.create.*;
 import com.nhnacademy.gateway.dto.detail.ProjectDetailsDto;
 import com.nhnacademy.gateway.dto.detail.TaskApiResponseDto;
 import com.nhnacademy.gateway.dto.detail.TaskDetailsDto;
 import com.nhnacademy.gateway.dto.relation.ProjectMemberAddRequest;
 import com.nhnacademy.gateway.dto.relation.TaskAddTagRequest;
 import com.nhnacademy.gateway.dto.relation.TaskSetMileStoneRequest;
-import com.nhnacademy.gateway.dto.update.ProjectUpdateRequest;
-import com.nhnacademy.gateway.dto.update.TaskUpdateRequest;
+import com.nhnacademy.gateway.dto.update.*;
 import com.nhnacademy.gateway.service.AccountService;
 import com.nhnacademy.gateway.service.DataAggregationService;
 import lombok.extern.slf4j.Slf4j;
@@ -115,14 +113,14 @@ public class DataAggregationServiceImpl implements DataAggregationService {
 
 
     @Override
-    public ProjectCreateRequest createProject(ProjectCreateRequest request) {
+    public void createProject(ProjectCreateRequest request) {
         try{
             String url = taskApiBaseUrl + "/projects";
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<ProjectCreateRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
 
-            return taskRestTemplate.postForObject(url, httpEntity, ProjectCreateRequest.class);
+            taskRestTemplate.postForEntity(url, httpEntity, Void.class);
         }catch (Exception e){
             log.error("프로젝트 생성에 실패했습니다. {}:{}", request.getName(), e.getMessage());
             throw new RuntimeException("프로젝트 생성에 실패했습니다.",e);
@@ -239,14 +237,14 @@ public class DataAggregationServiceImpl implements DataAggregationService {
     }
 
     @Override
-    public TaskCreateRequest createTask(Long projectId, TaskCreateRequest request) {
+    public void createTask(Long projectId, TaskCreateRequest request) {
         String url = taskApiBaseUrl+ "/projects/"+projectId+"/tasks";
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<TaskCreateRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
         try{
-            return taskRestTemplate.postForObject(url, httpEntity, TaskCreateRequest.class);
+            taskRestTemplate.postForEntity(url, httpEntity, Void.class);
 
         } catch (Exception e){
             log.error("Task 생성에 실패했습니다. {}:{}", request.getTitle(), e.getMessage());
@@ -335,7 +333,7 @@ public class DataAggregationServiceImpl implements DataAggregationService {
 
     @Override
     public void removeTagFromTask(Long taskId, Long tagId) {
-        String url = taskApiBaseUrl + "/tasks/"+taskId+"/tags/"+tagId;
+        String url = taskApiBaseUrl +"/tasks/"+taskId+"/tags/"+tagId;
 
         try{
             taskRestTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
@@ -346,6 +344,166 @@ public class DataAggregationServiceImpl implements DataAggregationService {
         }catch (Exception ex){
             log.error("Task-Tag  communication failed during delete: {}", ex.getMessage());
             throw new RuntimeException("프로젝트 삭제 중 서버 오류가 발생했습니다.");
+        }
+    }
+
+    @Override
+    public void createTag(Long projectId, TagCreateRequest request) {
+        String url = taskApiBaseUrl+ "/projects/"+projectId+"/tags";
+        request.setProjectId(projectId);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<TagCreateRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
+        try{
+            taskRestTemplate.postForEntity(url, httpEntity, Void.class);
+
+        }catch (HttpClientErrorException ex){
+            log.warn("Task-API 태그 생성 실패 (Client Error {}): {}", ex.getStatusCode(), ex.getMessage());
+            throw new IllegalArgumentException("태그 생성에 실패했습니다. (API오류)");
+        }
+        catch (Exception e){
+            log.error("Tag 생성에 실패했습니다. {}:{}", request.getName(), e.getMessage());
+            throw new RuntimeException("Tag 생성에 실패했습니다. 서버오류",e);
+        }
+    }
+
+    @Override
+    public void updateTag(Long projectId, Long tagId, TagUpdateRequest request) {
+        String url = taskApiBaseUrl+ "/projects/"+projectId+"/tags/"+tagId;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<TagUpdateRequest> httpEntity = new HttpEntity<>(request, headers);
+
+        try{
+            taskRestTemplate.exchange(url, HttpMethod.PUT, httpEntity, Void.class);
+        }catch (HttpClientErrorException ex){
+            log.warn("Tag update Failed(Client Error{}): {}", ex.getStatusCode(), tagId);
+            throw new IllegalArgumentException("정보 수정에 실패했습니다.: "+ ex.getMessage());
+        }catch (Exception ex){
+            log.error("Tag API communication failed during update: {}", ex.getMessage());
+            throw new RuntimeException("정보 수정 중 서버 오류가 발생했습니다.");
+        }
+    }
+
+    @Override
+    public void deleteTag(Long projectId, Long tagId) {
+        String url = taskApiBaseUrl+ "/projects/"+projectId+"/tags/"+tagId;
+        try{
+            taskRestTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
+            log.info("Tag 삭제가 성공적으로 됐습니다 (Task-API): {}", tagId);
+        }catch (HttpClientErrorException ex){
+            log.warn("Tag delete Failed(Client Error{}): {}", ex.getStatusCode(), tagId);
+            throw new IllegalArgumentException("프로젝트 삭제에 실패했습니다.: "+ ex.getMessage());
+        }catch (Exception ex){
+            log.error("Tag API communication failed during delete: {}", ex.getMessage());
+            throw new RuntimeException("프로젝트 삭제 중 서버 오류가 발생했습니다.");
+        }
+    }
+
+    @Override
+    public void createMileStone(Long projectId, MileStoneCreateRequest request) {
+        String url = taskApiBaseUrl+ "/projects/"+projectId+"/milestones";
+        request.setProjectId(projectId);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<MileStoneCreateRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
+        try{
+            taskRestTemplate.postForEntity(url, httpEntity, Void.class);
+
+        }catch (HttpClientErrorException ex){
+            log.warn("Task-API 마일스톤 생성 실패 (Client Error {}): {}", ex.getStatusCode(), ex.getMessage());
+            throw new IllegalArgumentException("마일 스톤 생성에 실패했습니다. (API오류)");
+        }
+        catch (Exception e){
+            log.error("마일스톤 생성에 실패했습니다. {}:{}", request.getName(), e.getMessage());
+            throw new RuntimeException("마일스톤 생성에 실패했습니다. 서버오류",e);
+        }
+    }
+
+    @Override
+    public void updateMilestone(Long projectId, Long milestoneId, MileStoneUpdateRequest request) {
+        String url = taskApiBaseUrl+ "/projects/"+projectId+"/milestones/"+milestoneId;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<MileStoneUpdateRequest> httpEntity = new HttpEntity<>(request, headers);
+
+        try{
+            taskRestTemplate.exchange(url, HttpMethod.PUT, httpEntity, Void.class);
+        }catch (HttpClientErrorException ex){
+            log.warn("Milestone update Failed(Client Error{}): {}", ex.getStatusCode(), milestoneId);
+            throw new IllegalArgumentException("정보 수정에 실패했습니다.: "+ ex.getMessage());
+        }catch (Exception ex){
+            log.error("Milestone API communication failed during update: {}", ex.getMessage());
+            throw new RuntimeException("정보 수정 중 서버 오류가 발생했습니다.");
+        }
+    }
+
+    @Override
+    public void deleteMilestone(Long projectId, Long milestoneId) {
+        String url = taskApiBaseUrl+ "/projects/"+projectId+"/milestones/"+milestoneId;
+        try{
+            taskRestTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
+            log.info("Milestone 삭제가 성공적으로 됐습니다 (Task-API): {}", milestoneId);
+        }catch (HttpClientErrorException ex){
+            log.warn("Milestone delete Failed(Client Error{}): {}", ex.getStatusCode(), milestoneId);
+            throw new IllegalArgumentException("프로젝트 삭제에 실패했습니다.: "+ ex.getMessage());
+        }catch (Exception ex){
+            log.error("Milestone API communication failed during delete: {}", ex.getMessage());
+            throw new RuntimeException("프로젝트 삭제 중 서버 오류가 발생했습니다.");
+        }
+    }
+
+    @Override
+    public void createComment(Long projectId, Long taskId, CommentCreateRequest request) {
+        String url = taskApiBaseUrl + "/projects/" + projectId + "/tasks/"+ taskId + "/comments";
+        request.setTaskId(taskId);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<CommentCreateRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
+
+        try{
+            taskRestTemplate.postForEntity(url, httpEntity, Void.class);
+            log.info("코멘트 생성 성공: projectId={}, tasksId={}", projectId, taskId);
+        }catch (HttpClientErrorException ex){
+            log.warn("Task-API Comment 생성 실패 (Client Error {}): {}", ex.getStatusCode(), ex.getMessage());
+            throw new IllegalArgumentException("Comment 생성에 실패했습니다. (API오류)");
+        }
+        catch (Exception e){
+            log.error("코멘트 생성에 실패했습니다. {}:{}", request.getTaskId(), e.getMessage());
+            throw new RuntimeException("코멘트 생성에 실패했습니다. 서버오류",e);
+        }
+    }
+
+    @Override
+    public void updateComment(Long projectId, Long taskId, Long commentId, CommentUpdateRequest request) {
+        String url = taskApiBaseUrl + "/projects/" + projectId + "/tasks/"+ taskId + "/comments/"+ commentId;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<CommentUpdateRequest> httpEntity = new HttpEntity<>(request, headers);
+
+        try{
+            taskRestTemplate.exchange(url, HttpMethod.PUT, httpEntity, Void.class);
+        }catch (HttpClientErrorException ex){
+            log.warn("Comment update Failed(Client Error{}): {}", ex.getStatusCode(), commentId);
+            throw new IllegalArgumentException("정보 수정에 실패했습니다.: "+ ex.getMessage());
+        }catch (Exception ex){
+            log.error("Comment API communication failed during update: {}", ex.getMessage());
+            throw new RuntimeException("정보 수정 중 서버 오류가 발생했습니다.");
+        }
+    }
+
+    @Override
+    public void deleteComment(Long projectId, Long taskId, Long commentId) {
+        String url = taskApiBaseUrl + "/projects/" + projectId + "/tasks/"+ taskId + "/comments/"+ commentId;
+        try{
+            taskRestTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
+            log.info("Comment 삭제가 성공적으로 됐습니다 (Task-API): {}", commentId);
+        }catch (HttpClientErrorException ex){
+            log.warn("Comment delete Failed(Client Error{}): {}", ex.getStatusCode(), commentId);
+            throw new IllegalArgumentException("Comment 삭제에 실패했습니다.: "+ ex.getMessage());
+        }catch (Exception ex){
+            log.error("Comment API communication failed during delete: {}", ex.getMessage());
+            throw new RuntimeException("Comment 삭제 중 서버 오류가 발생했습니다.");
         }
     }
 }
