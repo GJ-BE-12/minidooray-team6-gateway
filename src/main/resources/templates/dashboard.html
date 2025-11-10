@@ -39,6 +39,7 @@
         <form th:action="@{/logout}" method="post">
             <button type="submit">로그아웃</button>
         </form>
+
     </header>
 
 
@@ -52,6 +53,12 @@
             <p>ID: <span th:text="${account.username}"></span></p>
             <p>EMAIL: <span th:text = "${account.email}"></span></p>
             <p>Status: <span th:text = "${account.status}"></span></p>
+            <a th:href="@{/user/{userId}/edit(userId=${account.username})}" class="btn" style="margin-top: 10px; background-color: #ffc107; color: #333;">
+                정보 수정
+            </a>
+            <a th:href="@{/users/{userId}(userId=${account.username})}" class="btn" style="margin-top: 10px;">
+                정보 상세조회
+            </a>
         </div>
     </div>
 <div class="project-list">

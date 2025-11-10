@@ -5,8 +5,9 @@
     <title>수정하기</title>
 </head>
 <body>
-    <h1>회원 정보 수정</h1>
-<form th:object="${user}" th:action="@{/users/{id}(id=*{accountId})}" method="post">
+<h1>회원 정보 수정</h1>
+
+<form th:object="${user}" th:action="@{/user/{id}(id=*{username})}" method="post">
     <input type="hidden" name="_method" value="put">
 
     <div>
@@ -26,16 +27,16 @@
 
     <div>
         <label>비밀번호: </label>
-        <form th:action="@{/users/{id}/password(id=${user.accountId})}" method="get">
-            <button type="submit">
-                비밀번호 변경하기
+        <a th:href="@{/users/{id}/password(id=*{username})}">
+            <button type="button"> 비밀번호 변경하기
             </button>
-        </form>
+        </a>
     </div>
 
     <div>
-        <button type="button" th:onclick="|location.href='@{/users/{id}(id=*{accountId})}'|" >취소</button>
+        <button type="button" th:onclick="|location.href='@{/users/{id}(id=*{username})}'|" >취소</button>
     </div>
+
     <button type="submit">저장하기</button>
 </form>
 </body>

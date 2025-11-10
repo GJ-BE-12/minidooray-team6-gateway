@@ -10,7 +10,7 @@
     <p><label>이메일: </label><span th:text = "${user.email}"></span>이메일</p>
     <p><label>상태: </label><span th:text = "${user.status}"></span>상태</p>
     <p><label>가입날짜: </label><span th:text = "${user.createdAt}"></span>가입날짜</p>
-    <p><label>마지막 로그인 날짜 : </label><span th:text = "${user.latestLoginAt}"></span>마지막 로그인날짜</p>
+    <p><label>마지막 로그인 날짜 : </label><span th:text = "${user.latestLoginAt}"></span></p>
 </div>
 
 <div th:if="${user==null}">
@@ -19,7 +19,7 @@
 
 <div>
     <form th:if = "${user != null}"
-          th:action="@{/users/{id}/edit(id=${user.accountId})}" method="get">
+          th:action="@{/user/{id}/edit(id=${user.getUsername()})}" method="get">
         <button type="submit">
             수정하기
         </button>
@@ -28,7 +28,7 @@
     <br/>
     <br/>
     <form th:if = "${user != null}"
-          th:action="@{/users/{id}/delete(id=${user.accountId})}" method="post">
+          th:action="@{/users/{id}(id=${user.getUsername()})}" method="post">
         <input type="hidden" name="_method" value="delete">
         <button type="submit" th:onclick="return confirm('정말로 탈퇴하시겠습니까? 탈퇴하시면 복구 불가능합니다.')">
             탈퇴하기
