@@ -7,5 +7,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class AccountLoginResponse {
     private Long id;
-    private String userId; //-> account-api가 반환해줄 사용자 Id
+    private String username; //-> account-api가 반환해줄 사용자 Id
 }

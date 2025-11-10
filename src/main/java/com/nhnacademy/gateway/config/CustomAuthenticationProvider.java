@@ -28,7 +28,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             AccountLoginResponse loginResponse = accountService.loginAccount(new AccountLoginRequest(username,password));
 
             CustomUserPrincipal principal = new CustomUserPrincipal(
-                    loginResponse.getUserId(),
+                    loginResponse.getUsername(),
                     null,
                     loginResponse.getId(),
                     Collections.emptyList()

@@ -11,7 +11,7 @@
     <p th:text="${error}"></p>
 </div>
 
-<form th:action="@{/join}" th:object="${request}" method="post">
+<form th:action="@{/users}" th:object="${request}" method="post">
     <div>
         <label>
             ID: <input type="text" id="username" th:field="*{username}" required>
