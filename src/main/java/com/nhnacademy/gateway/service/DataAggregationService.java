@@ -17,4 +17,6 @@ public interface DataAggregationService {
     ProjectDto getProject(Long projectId);
 
     void updateProject(Long projectId, ProjectUpdateRequest request);
+
+    void deleteProject(Long projectId);
 }

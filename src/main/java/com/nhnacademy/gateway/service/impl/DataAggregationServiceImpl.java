@@ -136,4 +136,20 @@ public class DataAggregationServiceImpl implements DataAggregationService {
             throw new RuntimeException("정보 수정 중 서버 오류가 발생했습니다.");
         }
     }
+
+    @Override
+    public void deleteProject(Long projectId) {
+        String url = taskApiBaseUrl + "/projects/" +projectId;
+        try{
+            taskRestTemplate.exchange(url, HttpMethod.DELETE, null, Void.class);
+
+            log.info("프로젝트 삭제가 성공적으로 됐습니다 (Task-API): {}", projectId);
+        }catch (HttpClientErrorException ex){
+            log.warn("Project delete Failed(Client Error{}): {}", ex.getStatusCode(), projectId);
+            throw new IllegalArgumentException("프로젝트 삭제에 실패했습니다.: "+ ex.getMessage());
+        }catch (Exception ex){
+            log.error("Project API communication failed during update: {}", ex.getMessage());
+            throw new RuntimeException("프로젝트 삭제 중 서버 오류가 발생했습니다.");
+        }
+    }
 }

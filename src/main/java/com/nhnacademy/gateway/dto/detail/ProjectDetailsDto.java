@@ -15,9 +15,9 @@ import java.util.List;
 @AllArgsConstructor
 public class ProjectDetailsDto {
     private ProjectDto project;
+    private MileStoneDto mileStone;
 
     private List<TaskDto> tasks;
     private List<TagDto> tags;
-    private MileStoneDto mileStone;
     private List<AccountDto> members;
 }

@@ -61,6 +61,23 @@
 
         .member-item { display: flex; justify-content: space-between; align-items: center; }
         .admin-tag { background-color: #f0ad4e; color: white; font-size: 0.8em; padding: 2px 5px; border-radius: 3px; }
+
+        .status-alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+        }
+        .alert-dormant { /* 휴면 */
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+        .alert-closed { /* 종료 */
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
     </style>
 </head>
 <body>
@@ -70,22 +87,30 @@
     <div class="project-header">
         <div>
             <h1 th:text="*{project.name}">프로젝트 이름 </h1>
-            <span th:text="*{project.status}">프로젝트 상태</span>
+            <span class="project-status" th:text="*{project.status}" th:classappend=" 'status-' + *{project.status}">프로젝트 상태</span>
         </div>
         <a th:href="@{/}" class="btn btn-secondary">대시보드</a>
+    </div>
+
+    <div th:if="*{project.status=='휴면'}" class="status-alert alert-dormant">
+        <strong>[휴면]</strong> 이 프로젝트는 현재 휴면 상태입니다.
+    </div>
+
+    <div th:if="*{project.status=='종료'}" class="status-alert alert-closed">
+        <strong>[종료]</strong> 이 프로젝트는 현재 종료 상태입니다. (읽기 전용)
     </div>
 
     <div th:if="${isAdmin}" class="admin-controls">
         <h3>관리자 메뉴</h3>
         <a th:href="@{/projects/{id}/edit(id=*{project.id})}" class="btn btn-warning">프로젝트 설정</a>
-        <a th:href="@{/projects/{id}/members(id=*{project.id})}" class="btn btn-secondary">멤버 설정</a>
+        <a th:if="*{project.status!='종료'}" th:href="@{/projects/{id}/members(id=*{project.id})}" class="btn btn-secondary">멤버 설정</a>
     </div>
 
     <div class="main-layout">
         <div class="task-column">
             <div class="task-header">
                 <h3>업무 (Tasks)</h3>
-                <a th:href="@{/projects/{id}/tasks(id=*{project.id})}" class="btn btn-primary">업무 추가</a>
+                <a th:if="*{project.status!='종료'}" th:href="@{/projects/{id}/tasks(id=*{project.id})}" class="btn btn-primary">업무 추가</a>
             </div>
             <div th:if="*{tasks.isEmpty()}">
                 <p>등록된 업무가 없습니다.</p>
@@ -117,7 +142,7 @@
             <div class="box">
                 <div class="box-header">
                     <h3>태그</h3>
-                    <a th:href="@{/projects/{id}/tags(id=*{project.id})}" class="btn btn-primary">태그 추가</a>
+                    <a th:if="*{project.status!='종료'}" th:href="@{/projects/{id}/tags(id=*{project.id})}" class="btn btn-primary">태그 추가</a>
                 </div>
 
                 <div th:if="*{tags.isEmpty()}"> <p>태그가 없습니다.</p> </div>
@@ -131,7 +156,7 @@
             <div class="box">
                 <div class="box-header">
                     <h3>마일스톤</h3>
-                    <a th:href="@{/projects/{id}/milestones(id=*{project.id})}" class="btn btn-secondary">마일스톤 생성</a>
+                    <a th:if="*{project.status!='종료'}" th:href="@{/projects/{id}/milestones(id=*{project.id})}" class="btn btn-secondary">마일스톤 생성</a>
                 </div>
                 <div th:if="*{mileStone==null}">
                     <p>마일스톤이 없습니다.</p>

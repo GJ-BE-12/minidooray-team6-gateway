@@ -15,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
 
@@ -139,6 +140,21 @@ public class TaskController {
         }
     }
 
-
+    @DeleteMapping("/projects/{projectId}")
+    public String projectDelete(@PathVariable Long projectId, RedirectAttributes redirectAttributes){
+        try{
+            aggregationService.deleteProject(projectId);
+            redirectAttributes.addFlashAttribute("message", "프로젝트가 성공적으로 삭제되었습니다.");
+            return "redirect:/";
+        }catch (IllegalArgumentException | HttpClientErrorException ex){
+            log.warn("프로젝트 정보 변경 실패 (client): {}", ex.getMessage());
+            redirectAttributes.addFlashAttribute("error", "정보 변경에 실패했습니다. ");
+            return "projectUpdateForm";
+        }catch (Exception e){
+            log.error("프로젝트 정보 변경 실패 (server): {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "서버 오류로 변경 실패");
+            return "errorPage";
+        }
+    }
 
 }

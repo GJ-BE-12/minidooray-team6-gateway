@@ -11,12 +11,26 @@
         .user-info, .project-list { margin-bottom: 30px; }
         .project-list-header { display: flex; justify-content: space-between; align-items: center; }
         .btn { background-color: #007bff; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; }
-        .project-item { list-style: none; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        .project-item a { text-decoration: none; color: #0056b3; font-weight: bold; font-size: 1.2em; }
+        .project-item {
+            list-style: none;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }        .project-item a { text-decoration: none; color: #0056b3; font-weight: bold; font-size: 1.2em; }
         .project-item .status { display: inline-block; padding: 2px 6px; border-radius: 3px; background-color: #eee; font-size: 0.9em; margin-left: 10px; }
         .project-item .status-활성 { background-color: #d4edda; color: #155724; }
         .project-item .status-종료 { background-color: #f8d7da; color: #721c24; }
         .project-item .status-휴면 { background-color: #e2e3e5; color: #383d41; }
+        .btn-delete {
+            background-color: #d9534f;
+            color: white;
+            font-size: 0.9em;
+            padding: 5px 10px;
+        }
     </style>
 </head>
 <body>
@@ -54,15 +68,29 @@
         <p>참여 중인 프로젝트가 없습니다. 새 프로젝트를 생성해 보세요.</p>
     </div>
 
-    <ul th:if="${!projects.isEmpty()}" style = "padding-left: 0;">
+    <ul th:if="${projects !=null and !projects.isEmpty()}" style = "padding-left: 0;">
         <li th:each="project : ${projects}" class="project-item">
-            <a th:href="@{/projects/{projectId}(projectId=${project.id})}" th:text="${project.name}">
-                프로젝트 이름
-            </a>
+            <div>
+                <a th:href="@{/projects/{projectId}(projectId=${project.id})}" th:text="${project.name}">
+                    프로젝트 이름
+                </a>
 
-            <span class="status" th:text="${project.status}" th:classappend="'status-'+${project.status}">
+                <span class="status" th:text="${project.status}" th:classappend="'status-'+${project.status}">
                 상태
             </span>
+            </div>
+
+            <div>
+                <form th:if="${account!=null and account.username.equals(project.adminUserId)}"
+                      th:action="@{/projects/{projectId}(projectId=${project.id})}" method="post" style ="margin: 0;">
+                    <input type="hidden" name="_method" value="delete">
+
+                    <button type="submit" class="btn btn-delete" th:onclick="return confirm('정말로 이 프로젝트를[삭제]하시겠습니까? 모든 관련 데이가 없어집니다.')">
+                        삭제
+                    </button>
+                </form>
+            </div>
+
         </li>
     </ul>
 </div>
