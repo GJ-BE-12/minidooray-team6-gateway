@@ -15,9 +15,16 @@ import java.util.List;
 @AllArgsConstructor
 public class ProjectDetailsDto {
     private ProjectDto project;
-    private MileStoneDto mileStone;
+    private List<MileStoneDto> mileStones;
 
     private List<TaskDto> tasks;
     private List<TagDto> tags;
     private List<AccountDto> members;
+
+    public ProjectDetailsDto(TaskApiResponseDto apiResponseDto){
+        this.project=apiResponseDto.getProject();
+        this.mileStones = apiResponseDto.getMileStones();
+        this.tasks = apiResponseDto.getTasks();
+        this.tags = apiResponseDto.getTags();
+    }
 }

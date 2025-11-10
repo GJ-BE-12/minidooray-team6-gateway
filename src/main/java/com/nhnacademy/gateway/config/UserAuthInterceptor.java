@@ -19,17 +19,21 @@ public class UserAuthInterceptor implements ClientHttpRequestInterceptor {
 
         if(authentication !=null && authentication.isAuthenticated()){
             Object principal = authentication.getPrincipal();
-            String userId = null;
 
-            if(principal instanceof UserDetails){
-                userId =((UserDetails) principal).getUsername();
-            } else if (principal instanceof String) {
-                userId = (String) principal;
+
+            if(principal instanceof CustomUserPrincipal){
+                CustomUserPrincipal userPrincipal = (CustomUserPrincipal) principal;
+                Long numericId = userPrincipal.getNumericId();
+
+                if(numericId != null){
+                    request.getHeaders().set(USER_ID_HEADER, String.valueOf(numericId));
+                }
+
+            }else if (principal instanceof  String){
+                request.getHeaders().set(USER_ID_HEADER, (String) principal);
             }
 
-            if(userId != null){
-                request.getHeaders().set(USER_ID_HEADER, userId);
-            }
+
         }
         return execution.execute(request,body);
     }

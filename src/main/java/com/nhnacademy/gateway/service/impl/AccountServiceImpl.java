@@ -10,10 +10,15 @@ import com.nhnacademy.gateway.service.AccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -54,7 +59,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public String loginAccount(AccountLoginRequest request) {
+    public AccountLoginResponse loginAccount(AccountLoginRequest request) {
         String url = accountApiBaseUrl +"/users/login";
 
         HttpHeaders headers = new HttpHeaders();
@@ -64,7 +69,7 @@ public class AccountServiceImpl implements AccountService {
         try{
             ResponseEntity<AccountLoginResponse> response = restTemplate.postForEntity(url, httpEntity, AccountLoginResponse.class);
             if(response.getStatusCode()==HttpStatus.OK && response.getBody() != null){
-                return response.getBody().getUserId();
+                return response.getBody();
             }
             throw new IllegalArgumentException("로그인 실패: Account-API 응답 오류");
         }catch(HttpClientErrorException ex){
@@ -90,7 +95,27 @@ public class AccountServiceImpl implements AccountService {
             log.error("Error fetching account details: {}", e.getMessage());
             throw new RuntimeException("회원 정보 조회 중 서버 오류 발생", e);
         }
+    }
 
+    @Override
+    public List<AccountDto> getAccountDetailsByIds(List<Long> userIds) {
+        if(userIds==null || userIds.isEmpty()){
+            return List.of();
+        }
+
+        String url = UriComponentsBuilder.fromUriString(accountApiBaseUrl +"/users/batch")
+                .queryParam("ids", userIds.stream().map(String::valueOf).collect(Collectors.joining(",")))
+                .toUriString();
+
+        try{
+            ParameterizedTypeReference<List<AccountDto>> responseType = new ParameterizedTypeReference<List<AccountDto>>() {
+            };
+            ResponseEntity<List<AccountDto>> response = restTemplate.exchange(url, HttpMethod.GET, null, responseType);
+            return response.getBody();
+        }catch (Exception e){
+            log.error("Error fetching batch account details: {}", e.getMessage());
+            return List.of();
+        }
     }
 
     @Override
@@ -145,4 +170,25 @@ public class AccountServiceImpl implements AccountService {
             throw new RuntimeException("회원 탈퇴 중 서버 오류가 발생했습니다.");
         }
     }
+
+    @Override
+    public List<AccountDto> searchAccounts(String query) {
+        if(query==null || query.isBlank()){
+            return List.of();
+        }
+        String url = UriComponentsBuilder.fromUriString(accountApiBaseUrl+"/users")
+                .queryParam("query", query)
+                .toUriString();
+
+        try{
+            ParameterizedTypeReference<List<AccountDto>> responseType = new ParameterizedTypeReference<List<AccountDto>>() {};
+            ResponseEntity<List<AccountDto>> responseEntity =restTemplate.exchange(url, HttpMethod.GET, null, responseType);
+            return responseEntity.getBody() != null ? responseEntity.getBody() : List.of();
+        }catch (Exception e){
+            log.error("Error searching accounts: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+
 }

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>프로젝트 상세</title>
     <style>
+        body { font-family: sans-serif; background-color: #f9f9f9; }
         .container {max-width: 12000px; margin: 20px auto; padding: 20px}
         .project-header{
             display: flex;
@@ -33,9 +34,22 @@
             font-weight: bold;
             margin-right: 10px;
         }
+        .btn-filter {
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            background-color: #f5f5f5;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .btn-filter:hover { background-color: #e0e0e0; }
+
         .btn-primary{background-color: #007bff; color: white;}
         .btn-secondary{background-color: #6c757d; color: white;}
         .btn-warning{background-color: #ffc107; color: #333;}
+
         .main-layout{display: flex; gap:20px;}
         .task-column {flex: 3; background-color: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd}
         .box {background-color: white; padding:20px; border-radius: 8px; border: 1px solid #ddd}
@@ -55,9 +69,9 @@
 
         .task-header h3, .box-header h3 {margin: 0}
 
-
-        .task-item { display: flex; justify-content: space-between; align-items: center; }
-        .task-item a { text-decoration: none; color: #0056b3; font-weight: bold; }
+        .task-list ul { list-style: none; padding: 0; }
+        .task-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+        .task-list-item a { text-decoration: none; color: #0056b3; font-weight: bold; }
 
         .member-item { display: flex; justify-content: space-between; align-items: center; }
         .admin-tag { background-color: #f0ad4e; color: white; font-size: 0.8em; padding: 2px 5px; border-radius: 3px; }
@@ -68,12 +82,12 @@
             border: 1px solid transparent;
             border-radius: 8px;
         }
-        .alert-dormant { /* 휴면 */
+        .alert-dormant {
             color: #856404;
             background-color: #fff3cd;
             border-color: #ffeeba;
         }
-        .alert-closed { /* 종료 */
+        .alert-closed {
             color: #721c24;
             background-color: #f8d7da;
             border-color: #f5c6cb;
@@ -110,14 +124,44 @@
         <div class="task-column">
             <div class="task-header">
                 <h3>업무 (Tasks)</h3>
-                <a th:if="*{project.status!='종료'}" th:href="@{/projects/{id}/tasks(id=*{project.id})}" class="btn btn-primary">업무 추가</a>
+                <a th:if="*{project.status!='종료'}" th:href="@{/projects/{id}/tasks/register(id=*{project.id})}" class="btn btn-primary">업무 추가</a>
             </div>
+
+            <div class="task-filter-controls" style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                <strong>마일스톤 필터:</strong>
+                <button type="button" class="btn-filter" onclick="filterTasks('milestone', 'all')">전체</button>
+                <button type="button" class="btn-filter" onclick="filterTasks('milestone', 'none')">없음</button>
+                <button th:each="ms : *{mileStones}"
+                        type="button"
+                        class="btn-filter"
+                        th:text="${ms.name}"
+                        th:onclick="|filterTasks('milestone', '${ms.id}')|">
+                </button>
+            </div>
+
+            <div class="task-filter-controls" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                <strong>태그 필터:</strong>
+                <button type="button" class="btn-filter" onclick="filterTasks('tag', 'all')">전체</button>
+                <button type="button" class="btn-filter" onclick="filterTasks('tag', 'none')">없음</button>
+                <button th:each="tag : *{tags}"
+                        type="button"
+                        class="btn-filter"
+                        th:text="${tag.name}"
+                        th:onclick="|filterTasks('tag', '${tag.id}')|">
+                </button>
+            </div>
+
             <div th:if="*{tasks.isEmpty()}">
                 <p>등록된 업무가 없습니다.</p>
             </div>
-            <div class="task-item">
-                <ul th:unless="*{tasks.isEmpty()}">
-                    <li th:each="task : *{tasks}">
+
+            <div class="task-list">
+                <ul th:unless="*{tasks.isEmpty()}" id="task-list-ul">
+                    <li th:each="task : *{tasks}"
+                        class="task-list-item"
+                        th:data-task-milestone-id="${task.milestoneId != null ? task.milestoneId : 'none'}"
+                        th:data-task-tag-ids="${(task.tags != null && !task.tags.isEmpty()) ? #strings.listJoin(task.tags.![id], ',') : 'none'}">
+
                         <a th:href="@{/projects/{id}/tasks/{taskId}(id=*{project.id}, taskId=*{task.id})}"
                            th:text="${task.title}">
                             업무 제목
@@ -133,7 +177,7 @@
                     <h3>멤버</h3>
                 </div>
                 <ul th:unless="*{members.isEmpty()}">
-                    <li th:each="member: *{members}">
+                    <li th:each="member: *{members}" class="member-item">
                         <span th:text = "${member.username}">멤버 이름</span>
                         <span th:if="${member.username.equals(project.adminUserId)}" class="admin-tag">Admin</span>
                     </li>
@@ -158,16 +202,59 @@
                     <h3>마일스톤</h3>
                     <a th:if="*{project.status!='종료'}" th:href="@{/projects/{id}/milestones(id=*{project.id})}" class="btn btn-secondary">마일스톤 생성</a>
                 </div>
-                <div th:if="*{mileStone==null}">
+                <div th:if="*{mileStones == null || mileStones.isEmpty()}">
                     <p>마일스톤이 없습니다.</p>
                 </div>
-                <div th:unless="*{mileStone!=null}">
-                    <p th:text="@{mileStone}"> 마일스톤</p>
-                </div>
+                <ul th:unless="*{mileStones == null || mileStones.isEmpty()}">
+                    <li th:each="ms : *{mileStones}">
+                        <span th:text="${ms.name}">마일스톤 이름</span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
+
+<script th:inline="javascript">
+
+    function filterTasks(filterType, filterValue) {
+
+        const taskList = document.getElementById('task-list-ul');
+        if (!taskList) return;
+
+        const tasks = taskList.getElementsByClassName('task-list-item');
+
+        for (let i = 0; i < tasks.length; i++) {
+            const task = tasks[i];
+            let isVisible = false;
+            if (filterType === 'milestone') {
+                const taskMsId = task.dataset.taskMilestoneId;
+
+                if (filterValue === 'all') {
+                    isVisible = true;
+                } else if (filterValue === 'none') {
+                    isVisible = (taskMsId === 'none');
+                } else {
+                    isVisible = (taskMsId === filterValue);
+                }
+
+            } else if (filterType === 'tag') {
+                const taskTagIds = task.dataset.taskTagIds;
+
+                if (filterValue === 'all') {
+                    isVisible = true;
+                } else if (filterValue === 'none') {
+                    isVisible = (taskTagIds === 'none');
+                } else {
+                    isVisible = taskTagIds.split(',').includes(filterValue);
+                }
+            }
+
+            task.style.display = isVisible ? 'flex' : 'none';
+        }
+    }
+
+</script>
 
 </body>
 </html>

@@ -14,7 +14,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskCreateRequest {
-    private Long projectId;
     private String title;
     private String content;
 }

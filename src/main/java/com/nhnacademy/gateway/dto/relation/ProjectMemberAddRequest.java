@@ -14,4 +14,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ProjectMemberAddRequest {
     private Long id;
+
 }
