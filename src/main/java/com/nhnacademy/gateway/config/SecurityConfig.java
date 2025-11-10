@@ -32,7 +32,7 @@ public class SecurityConfig {
                 authorizeRequests
                         .requestMatchers("/test/**").permitAll()
                         .requestMatchers("/login").permitAll()
-                        .requestMatchers("/join").permitAll()
+                        .requestMatchers("/users").permitAll()
                         .requestMatchers("/login/process").permitAll()
                         .requestMatchers("/members/register").permitAll()
 
@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .usernameParameter("id")
                         .passwordParameter("password")
                         .loginProcessingUrl("/login/process")
+                        .defaultSuccessUrl("/")
         );
 
         http.logout(logout ->logout
